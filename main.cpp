@@ -22,6 +22,7 @@ int main(int argc, char** argv) {
 		server->startServer();
 	} catch (Server::LaunchFailed& ex) {
 		std::cerr << ex.what() << std::endl;
+		return (1);
 	}
     return 0;
 }
