@@ -36,8 +36,7 @@ void	Server::createSocket() {
 		throw LaunchFailed(_err.c_str());
 	}
 
-	// Do i need this?
-	/*
+	/* Do i need this?
 	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1) {
 		_err.append("An error on fcntl: ");
 		_err.append(strerror(errno));
@@ -97,13 +96,62 @@ void Server::deleteFromPollSet(int i) {
 	_pollFds[i] = _pollFds[--_fdCount];
 }
 
+// Send message to all users with handling partial send
+void Server::sendMessageToAll(const char* msg, ssize_t nbrOfBytes, int senderFd) {
+	ssize_t	sent;
+	ssize_t	left;
+	ssize_t	n;
+	int		destFd;
+
+	for (int i = 0; i < _fdCount; i++) {
+		sent = 0;
+		left = nbrOfBytes;
+		destFd = _pollFds[i].fd;
+		if (destFd != _socketFd && destFd != senderFd) {
+			while (sent < nbrOfBytes) {
+				n = send(destFd, msg, left, 0);
+				if (n == -1) {
+					std::cerr << "Sending to " << destFd << " failed: "
+						<< strerror(errno) << std::endl;
+					break;
+				}
+				sent += n;
+				left -= n;
+			}
+		}
+	}
+}
+
+void	Server::receiveMessage(int connectionNbr) {
+	char	buf[512];
+	ssize_t	bytes;
+	int		senderFd;
+
+	senderFd = _pollFds[connectionNbr].fd;
+	bytes = recv(senderFd, buf, sizeof buf, 0);
+	if (bytes <= 0) {
+		// Get error or connection closed by client
+		if (bytes == 0) {
+			std::cout << "Client with fd " << senderFd
+					  << " close connection" << std::endl;
+		} else {
+			std::cerr << "Recv error: " << strerror(errno)
+					  << std::endl;
+		}
+		close(senderFd);
+		deleteFromPollSet(connectionNbr);
+	} else {
+		// Got message from client
+		sendMessageToAll(buf, bytes, senderFd);
+	}
+}
+
 // The only public method
 void Server::startServer() {
-	int status;
 	struct sockaddr_storage remoteAddr;
 	socklen_t addrLen;
 	int inFd;
-	char	buf[512];
+//	char	buf[512];
 
 	if (!_err.empty()) {
 		_err.clear();
@@ -142,7 +190,6 @@ void Server::startServer() {
 		for (int i = 0; i < _fdCount; i++) { // Run through existing connections
 
 			if (_pollFds[i].revents & POLLIN) { // Check if someone ready to read
-
 //				If out server socket ready to read, we add new connection to the poll set
 				if (_pollFds[i].fd == _socketFd) {
 					addrLen = sizeof remoteAddr;
@@ -154,30 +201,7 @@ void Server::startServer() {
 						std::cout << "NEW CONNECTION: fd " << inFd - 1 << std::endl;
 					}
 				} else { // Client send message
-					int senderFd = _pollFds[i].fd;
-					ssize_t bytes = recv(senderFd, buf, sizeof buf, 0);
-					if (bytes <= 0) { // Get error or connection closed by client
-						if (bytes == 0) {
-							std::cout << "Client with fd " << senderFd
-										<< " close connection" << std::endl;
-						} else {
-							std::cerr << "Recv error: " << strerror(errno)
-										<< std::endl;
-						}
-						close(senderFd);
-						deleteFromPollSet(i);
-					} else { // Got message from client
-						// Send to every one
-						for (int j = 0; j < _fdCount; j++) {
-							int destFd = _pollFds[j].fd;
-							if (destFd != _socketFd && destFd != senderFd) {
-								if (send(destFd, buf, bytes, 0) == -1) {
-									std::cerr << "Send error: " << strerror(errno)
-											  << std::endl;
-								}
-							}
-						}
-					}
+					receiveMessage(i);
 				}
 			}
 		}
