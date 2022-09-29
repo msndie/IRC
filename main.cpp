@@ -9,8 +9,8 @@ bool isStrBlank(const char *str);
 
 int main(int argc, char** argv) {
 //    int				port;
-    std::string				pass;
-	Server*	server;
+    std::string	pass;
+	Server*		server;
 
     if (argc != 3 || !isPortValid(argv[1]) || isStrBlank(argv[2])) {
         std::cerr << "./ircserv <port (unsigned short)> <password>" << std::endl;

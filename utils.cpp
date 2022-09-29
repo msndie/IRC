@@ -1,5 +1,7 @@
 #include <cstring>
 #include <climits>
+#include <cstdlib>
+#include <cstddef>
 
 int	parsePort(const char* str) {
 	int	result;
@@ -47,4 +49,42 @@ bool isStrBlank(const char *str) {
 	if (str[i] == '\0')
 		return true;
 	return false;
+}
+
+bool endsWith(const char *str, const char *suffix) {
+	if (!str || !suffix)
+		return false;
+	size_t strLen = strlen(str);
+	size_t suffixLen = strlen(suffix);
+	if (suffixLen > strLen)
+		return false;
+	return strncmp(str + strLen - suffixLen, suffix, suffixLen) == 0;
+}
+
+char	*strjoin(char const *s1, char const *s2) {
+	char	*dest;
+	int		i;
+	int		j;
+	int		n;
+
+	i = 0;
+	j = 0;
+	n = 0;
+	if (!s1 && !s2)
+		return (strdup(""));
+	if (!s1)
+		return (strdup(s2));
+	if (s2[0] == '\0')
+		return (strdup(s1));
+	dest = static_cast<char *>(malloc(
+			sizeof(char) * (strlen(s1) + strlen(s2) + 1)));
+	if (dest == nullptr)
+		return (nullptr);
+	while (s2[n] != '\0') {
+		while (s1[j] != '\0')
+			dest[i++] = s1[j++];
+		dest[i++] = s2[n++];
+	}
+	dest[i] = '\0';
+	return (dest);
 }

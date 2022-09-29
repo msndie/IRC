@@ -1,4 +1,8 @@
+#include <arpa/inet.h>
 #include "Server.hpp"
+
+char*	strjoin(char const *s1, char const *s2);
+bool endsWith(const char *str, const char *suffix);
 
 Server::Server(const char* port) : _serverInfo(nullptr), _port(port), _socketFd(-1),
 									_pollFds(nullptr), _fdCount(0), _fdPollSize(5) {}
@@ -36,14 +40,11 @@ void	Server::createSocket() {
 		throw LaunchFailed(_err.c_str());
 	}
 
-	/* Do i need this?
-	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1) {
-		_err.append("An error on fcntl: ");
-		_err.append(strerror(errno));
-		freeaddrinfo(_serverInfo);
-		throw LaunchFailed(_err.c_str());
-	}
-	 */
+//	if (fcntl(_socketFd, F_SETFL, O_NONBLOCK) == -1) {
+//		_err.append("An error on fcntl: ");
+//		_err.append(strerror(errno));
+//		freeaddrinfo(_serverInfo);
+//		throw LaunchFailed(_err.c_str());
 
 	if (setsockopt(_socketFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1) {
 		close(_socketFd);
@@ -123,11 +124,13 @@ void Server::sendMessageToAll(const char* msg, ssize_t nbrOfBytes, int senderFd)
 }
 
 void	Server::receiveMessage(int connectionNbr) {
-	char	buf[512];
 	ssize_t	bytes;
+	char	buf[513] = { 0 };
 	int		senderFd;
+	User	*user;
 
 	senderFd = _pollFds[connectionNbr].fd;
+	user = _users[senderFd];
 	bytes = recv(senderFd, buf, sizeof buf, 0);
 	if (bytes <= 0) {
 		// Get error or connection closed by client
@@ -142,16 +145,30 @@ void	Server::receiveMessage(int connectionNbr) {
 		deleteFromPollSet(connectionNbr);
 	} else {
 		// Got message from client
-		sendMessageToAll(buf, bytes, senderFd);
+		if (user->getRemains()) {
+			user->setRemains(buf);
+			if (endsWith(user->getRemains(), "\n") || endsWith(user->getRemains(), "\r\n")) {
+				std::cout << std::endl << user->getRemains() << std::endl;
+				user->freeRemains();
+//				sendMessageToAll(buf, bytes, senderFd);
+			}
+		} else if (endsWith(buf, "\n") || endsWith(buf, "\r\n")) {
+			std::cout << std::endl << buf << std::endl;
+//			sendMessageToAll(buf, bytes, senderFd);
+		} else {
+			user->setRemains(buf);
+		}
+//		std::cout << std::endl << buf << std::endl;
+//		sendMessageToAll(buf, bytes, senderFd);
 	}
 }
 
 // The only public method
 void Server::startServer() {
+	User*	user;
 	struct sockaddr_storage remoteAddr;
 	socklen_t addrLen;
 	int inFd;
-//	char	buf[512];
 
 	if (!_err.empty()) {
 		_err.clear();
@@ -198,7 +215,10 @@ void Server::startServer() {
 						std::cerr << "Accept error: " << strerror(errno) << std::endl;
 					} else {
 						addToPollSet(inFd);
-						std::cout << "NEW CONNECTION: fd " << inFd - 1 << std::endl;
+						user = new User(inFd, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
+						_users.insert(std::make_pair(inFd, user));
+						std::cout << "NEW CONNECTION: fd " << inFd << std::endl;
+						std::cout << "Address " << user->getHost() << std::endl;
 					}
 				} else { // Client send message
 					receiveMessage(i);

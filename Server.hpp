@@ -12,18 +12,21 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <cstdlib>
+#include <map>
+#include "User.hpp"
 
 #define BACKLOG 5
 
 class Server {
 private:
-	struct addrinfo*	_serverInfo;
-	const char*			_port;
-	int 				_socketFd;
-	std::string			_err;
-	struct pollfd*		_pollFds;
-	int					_fdCount;
-	int					_fdPollSize;
+	std::map< int, User* >	_users;
+	struct addrinfo			*_serverInfo;
+	const char				*_port;
+	int 					_socketFd;
+	std::string				_err;
+	struct pollfd			*_pollFds;
+	int						_fdCount;
+	int						_fdPollSize;
 
 	void	setupStruct();
 	void	createSocket();
