@@ -2,6 +2,24 @@
 #include <climits>
 #include <cstdlib>
 #include <cstddef>
+#include <list>
+#include <string>
+
+std::list< std::string > split(const std::string& str, char delimiter) {
+	std::list< std::string >	list;
+	std::string::const_iterator	it = str.begin();
+
+	while (it != str.end()) {
+		while (it != str.end() && *it == delimiter)
+			++it;
+		std::string::const_iterator itTwo = std::find(it, str.end(), delimiter);
+		if (it != str.end()) {
+			list.push_back(std::string(it, itTwo));
+			it = itTwo;
+		}
+	}
+	return list;
+}
 
 int	parsePort(const char* str) {
 	int	result;
@@ -22,7 +40,7 @@ int	parsePort(const char* str) {
 	return (result);
 }
 
-bool isPortValid(const char* str) {
+bool	isPortValid(const char* str) {
 	int	result;
 	int	i;
 
@@ -41,7 +59,7 @@ bool isPortValid(const char* str) {
 	return (true);
 }
 
-bool isStrBlank(const char *str) {
+bool	isStrBlank(const char *str) {
 	int i = 0;
 
 	while ((str[i] >= 9 && str[i] <= 13) || str[i] == 32)
@@ -51,40 +69,10 @@ bool isStrBlank(const char *str) {
 	return false;
 }
 
-bool endsWith(const char *str, const char *suffix) {
-	if (!str || !suffix)
+bool	endsWith(const std::string& str, const std::string& suffix) {
+	if (str.length() >= suffix.length()) {
+		return (0 == str.compare (str.length() - suffix.length(), suffix.length(), suffix));
+	} else {
 		return false;
-	size_t strLen = strlen(str);
-	size_t suffixLen = strlen(suffix);
-	if (suffixLen > strLen)
-		return false;
-	return strncmp(str + strLen - suffixLen, suffix, suffixLen) == 0;
-}
-
-char	*strjoin(char const *s1, char const *s2) {
-	char	*dest;
-	int		i;
-	int		j;
-	int		n;
-
-	i = 0;
-	j = 0;
-	n = 0;
-	if (!s1 && !s2)
-		return (strdup(""));
-	if (!s1)
-		return (strdup(s2));
-	if (s2[0] == '\0')
-		return (strdup(s1));
-	dest = static_cast<char *>(malloc(
-			sizeof(char) * (strlen(s1) + strlen(s2) + 1)));
-	if (dest == nullptr)
-		return (nullptr);
-	while (s2[n] != '\0') {
-		while (s1[j] != '\0')
-			dest[i++] = s1[j++];
-		dest[i++] = s2[n++];
 	}
-	dest[i] = '\0';
-	return (dest);
 }

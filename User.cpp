@@ -1,8 +1,7 @@
 #include "User.hpp"
+#include "utils/utils.h"
 
-char	*strjoin(char const *s1, char const *s2);
-
-User::User(int fd, const std::string &host) : _fd(fd), _host(host), _remains(nullptr) {
+User::User(int fd, const std::string &host) : _fd(fd), _host(host), _response(nullptr) {
 }
 
 const std::string &User::getHost() const {
@@ -14,24 +13,29 @@ int User::getFd() const {
 }
 
 void User::setRemains(const char *str) {
-	char	*tmp;
-
-	if (_remains) {
-		tmp = _remains;
-		_remains = strjoin(_remains, str);
-		free(tmp);
-	} else {
-		_remains = strdup(str);
-	}
+	_remains += str;
 }
 
-char *User::getRemains() const {
+const std::string &User::getRemains() const {
 	return _remains;
 }
 
 void User::freeRemains() {
-	if (_remains) {
-		free(_remains);
-	}
-	_remains = nullptr;
+	_remains.clear();
+}
+
+Message *User::getResponse() {
+
+	delete _response;
+
+
+	return NULL;
+}
+
+bool User::isRegistered() const {
+	return _registered;
+}
+
+void User::setRegistered(bool registered) {
+	_registered = registered;
 }

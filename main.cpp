@@ -1,11 +1,7 @@
 #include <iostream>
 #include <string>
 #include "Server.hpp"
-
-int	parsePort(const char* str);
-bool isPortValid(const char* str);
-bool isStrBlank(const char *str);
-
+#include "utils/utils.h"
 
 int main(int argc, char** argv) {
 //    int				port;

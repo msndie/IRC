@@ -1,8 +1,6 @@
 #include <arpa/inet.h>
 #include "Server.hpp"
-
-char*	strjoin(char const *s1, char const *s2);
-bool endsWith(const char *str, const char *suffix);
+#include "utils/utils.h"
 
 Server::Server(const char* port) : _serverInfo(nullptr), _port(port), _socketFd(-1),
 									_pollFds(nullptr), _fdCount(0), _fdPollSize(5) {}
@@ -97,6 +95,25 @@ void Server::deleteFromPollSet(int i) {
 	_pollFds[i] = _pollFds[--_fdCount];
 }
 
+void Server::sendAll(const char *msg, ssize_t nbrOfBytes, int receiverFd) {
+	ssize_t	sent;
+	ssize_t	left;
+	ssize_t	n;
+
+	sent = 0;
+	left = nbrOfBytes;
+	while (sent < nbrOfBytes) {
+		n = send(receiverFd, msg, left, 0);
+		if (n == -1) {
+			std::cerr << "Sending to " << receiverFd << " failed: "
+					  << strerror(errno) << std::endl;
+			break;
+		}
+		sent += n;
+		left -= n;
+	}
+}
+
 // Send message to all users with handling partial send
 void Server::sendMessageToAll(const char* msg, ssize_t nbrOfBytes, int senderFd) {
 	ssize_t	sent;
@@ -132,8 +149,7 @@ void	Server::receiveMessage(int connectionNbr) {
 	senderFd = _pollFds[connectionNbr].fd;
 	user = _users[senderFd];
 	bytes = recv(senderFd, buf, sizeof buf, 0);
-	if (bytes <= 0) {
-		// Get error or connection closed by client
+	if (bytes <= 0) { // Get error or connection closed by client
 		if (bytes == 0) {
 			std::cout << "Client with fd " << senderFd
 					  << " close connection" << std::endl;
@@ -143,23 +159,32 @@ void	Server::receiveMessage(int connectionNbr) {
 		}
 		close(senderFd);
 		deleteFromPollSet(connectionNbr);
-	} else {
-		// Got message from client
-		if (user->getRemains()) {
-			user->setRemains(buf);
-			if (endsWith(user->getRemains(), "\n") || endsWith(user->getRemains(), "\r\n")) {
-				std::cout << std::endl << user->getRemains() << std::endl;
-				user->freeRemains();
-//				sendMessageToAll(buf, bytes, senderFd);
+	} else { // Got message from client
+
+		user->setRemains(buf);
+		if (endsWith(user->getRemains(), "\r\n") || endsWith(user->getRemains(), "\n")) {
+			std::list<Message *> list = Message::parseMessages(user->getRemains());
+			std::list<Message *>::const_iterator it = list.begin();
+			while (it != list.end()) {
+				std::cout << std::endl << *(*it) << std::endl;
+				++it;
 			}
-		} else if (endsWith(buf, "\n") || endsWith(buf, "\r\n")) {
-			std::cout << std::endl << buf << std::endl;
-//			sendMessageToAll(buf, bytes, senderFd);
-		} else {
-			user->setRemains(buf);
+			std::cout << std::endl;
+//			std::cout << std::endl << user->getRemains() << std::endl;
+			user->freeRemains();
 		}
-//		std::cout << std::endl << buf << std::endl;
-//		sendMessageToAll(buf, bytes, senderFd);
+
+//		if (user->getRemains()) {
+//			user->setRemains(buf);
+//			if (endsWith(user->getRemains(), "\r\n")) {
+//				std::cout << std::endl << user->getRemains() << std::endl;
+//				user->freeRemains();
+//			}
+//		} else if (endsWith(buf, "\r\n")) {
+//			std::cout << std::endl << buf << std::endl;
+//		} else {
+//			user->setRemains(buf);
+//		}
 	}
 }
 
@@ -174,7 +199,7 @@ void Server::startServer() {
 		_err.clear();
 	}
 
-//	Delegated private methods, almost all of them can throw exception
+//	Delegate to private methods, almost all of them can throw exception
 	setupStruct();
 	createSocket();
 	bindSocketToPort();
@@ -207,7 +232,7 @@ void Server::startServer() {
 		for (int i = 0; i < _fdCount; i++) { // Run through existing connections
 
 			if (_pollFds[i].revents & POLLIN) { // Check if someone ready to read
-//				If out server socket ready to read, we add new connection to the poll set
+				// If out server socket ready to read, we add new connection to the poll set
 				if (_pollFds[i].fd == _socketFd) {
 					addrLen = sizeof remoteAddr;
 					inFd = accept(_socketFd, reinterpret_cast<sockaddr*>(&remoteAddr), &addrLen);

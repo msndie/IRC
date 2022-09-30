@@ -34,6 +34,7 @@ private:
 	void	startListening();
 	void	addToPollSet(int inFd);
 	void	deleteFromPollSet(int i);
+	void	sendAll(const char* msg, ssize_t nbrOfBytes, int receiverFd);
 	void	sendMessageToAll(const char* msg, ssize_t nbrOfBytes, int senderFd);
 	void	receiveMessage(int connectionNbr);
 public:
