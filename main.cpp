@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
 		return (-1);
     }
 	pass.append(argv[2]);
-	server = new Server(argv[1]);
+	server = new Server(argv[1], pass.c_str());
 	try {
 		server->startServer();
 	} catch (Server::LaunchFailed& ex) {

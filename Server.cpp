@@ -2,8 +2,9 @@
 #include "Server.hpp"
 #include "utils/utils.h"
 
-Server::Server(const char* port) : _serverInfo(nullptr), _port(port), _socketFd(-1),
-									_pollFds(nullptr), _fdCount(0), _fdPollSize(5) {}
+Server::Server(const char* port, const char* password) : _serverInfo(nullptr), _port(port), _socketFd(-1),
+									_pollFds(nullptr), _fdCount(0), _fdPollSize(5),
+									_pass(password) {}
 
 Server::~Server() {}
 
@@ -115,7 +116,7 @@ void Server::sendAll(const char *msg, ssize_t nbrOfBytes, int receiverFd) {
 }
 
 // Send message to all users with handling partial send
-void Server::sendMessageToAll(const char* msg, ssize_t nbrOfBytes, int senderFd) {
+void Server::sendMessageToAll(const char *msg, ssize_t nbrOfBytes, int senderFd) {
 	ssize_t	sent;
 	ssize_t	left;
 	ssize_t	n;
@@ -163,28 +164,91 @@ void	Server::receiveMessage(int connectionNbr) {
 
 		user->setRemains(buf);
 		if (endsWith(user->getRemains(), "\r\n") || endsWith(user->getRemains(), "\n")) {
-			std::list<Message *> list = Message::parseMessages(user->getRemains());
-			std::list<Message *>::const_iterator it = list.begin();
+			user->parseMessages();
+			const std::list<Message *> &list = user->getMessages();
+			std::list<Message *>::const_iterator it;
+			it = list.begin();
 			while (it != list.end()) {
-				std::cout << std::endl << *(*it) << std::endl;
+				std::cout << *(*it);
 				++it;
 			}
 			std::cout << std::endl;
-//			std::cout << std::endl << user->getRemains() << std::endl;
-			user->freeRemains();
+			processMessages(user);
+			user->clearMessages();
 		}
 
-//		if (user->getRemains()) {
-//			user->setRemains(buf);
-//			if (endsWith(user->getRemains(), "\r\n")) {
-//				std::cout << std::endl << user->getRemains() << std::endl;
-//				user->freeRemains();
-//			}
-//		} else if (endsWith(buf, "\r\n")) {
-//			std::cout << std::endl << buf << std::endl;
-//		} else {
-//			user->setRemains(buf);
-//		}
+	}
+}
+
+void Server::checkUserInfo(User *user) {
+	if (!user->getNick().empty() && !user->getUsername().empty()
+			&& !user->getFullName().empty() && user->getPassword() == this->_pass) {
+		user->setRegistered(true);
+		sendMOTD(user);
+	} else {
+		user->setDisconnect(true);
+	}
+}
+
+void Server::sendMOTD(User *user) {
+	std::string rpl;
+
+	rpl = ":IRC-server 001 " + user->getNick() + " :Welcome " + user->getNick() + "!" + user->getUsername() + "@" + user->getHost() + "\n";
+	sendAll(rpl.c_str(), rpl.size(), user->getFd());
+	std::cout << rpl << std::endl;
+	rpl.clear();
+	rpl = ":IRC-server 375 " + user->getNick() + " :Message of the day\n";
+	sendAll(rpl.c_str(), rpl.size(), user->getFd());
+	std::cout << rpl << std::endl;
+	rpl.clear();
+	rpl = ":IRC-server 372 " + user->getNick() + " :Welcome to my IRC-server :D\n";
+	sendAll(rpl.c_str(), rpl.size(), user->getFd());
+	std::cout << rpl << std::endl;
+	rpl.clear();
+	rpl = ":IRC-server 376 " + user->getNick() + " :End of message of the day\n";
+	sendAll(rpl.c_str(), rpl.size(), user->getFd());
+	std::cout << rpl << std::endl;
+}
+
+void Server::processMessages(User *user) {
+	std::list<Message*>::const_iterator	it;
+
+	it = user->getMessages().begin();
+	while (it != user->getMessages().end()) {
+		std::string cmd = (*it)->getCmd();
+		if (!user->isRegistered() && cmd != "QUIT" && cmd != "PASS"
+				&& cmd != "USER" && cmd != "NICK") {
+//			TODO
+		} else {
+			if (cmd == "PASS") {
+				if (user->isRegistered()) {
+//					TODO
+				} else if ((*it)->getParams().empty()) {
+//					TODO
+				} else {
+					user->setPassword((*it)->getParams().front());
+				}
+			} else if (cmd == "NICK") {
+				if (user->isRegistered()) {
+//					TODO
+				} else if ((*it)->getParams().empty()) {
+//					TODO
+				} else {
+					user->setNick((*it)->getParams().front());
+				}
+			} else if (cmd == "USER") {
+				if (user->isRegistered()) {
+//					TODO
+				} else if ((*it)->getParams().size() < 4) {
+//					TODO
+				} else {
+					user->setUsername((*it)->getParams()[0]);
+					user->setFullName((*it)->getParams()[3]);
+					checkUserInfo(user);
+				}
+			}
+		}
+		++it;
 	}
 }
 

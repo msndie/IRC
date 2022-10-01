@@ -2,29 +2,27 @@
 #include "Message.hpp"
 #include "utils/utils.h"
 
-Message::Message(std::list<std::string> params, std::string cmd,
+Message::Message(std::vector<std::string> params, std::string cmd,
 				 std::string prefix) : _params(params), _cmd(cmd), _prefix(prefix) {}
 
 Message::~Message() {}
 
-std::list< Message* > Message::parseMessages(std::string msg) {
+void Message::parseMessages(const std::string& msg, std::list<Message*>& list) {
 	std::list< std::string >	listMsgs;
 	std::list< std::string >	listCmds;
-	std::list< Message* >		ret;
-	std::string					msgTmp;
-	std::string::size_type		pos;
+//	std::string					msgTmp;
 	std::string					prefix;
 	std::string					cmd;
-	std::list< std::string >	params;
+	std::vector< std::string >	params;
 
-	while ((pos = msg.find("\r\n")) != std::string::npos)
-		msg.replace(pos, 2, "\n");
 	listMsgs = split(msg, '\n');
 	while (!listMsgs.empty()) {
 
-		msgTmp = listMsgs.front();
-		listCmds = split(msgTmp, ' ');
-		msgTmp.clear();
+//		msgTmp = listMsgs.front();
+//		listCmds = split(msgTmp, ' ');
+//		msgTmp.clear();
+
+		listCmds = split(listMsgs.front(), ' ');
 
 		if (!listCmds.empty() && listCmds.front()[0] == ':') {
 			prefix = std::string(listCmds.front().begin() + 1, listCmds.front().end());
@@ -50,16 +48,11 @@ std::list< Message* > Message::parseMessages(std::string msg) {
 			}
 		}
 		listMsgs.pop_front();
-		ret.push_back(new Message(params, cmd, prefix));
+		list.push_back(new Message(params, cmd, prefix));
 		cmd.clear();
 		prefix.clear();
 		params.clear();
 	}
-	return (ret);
-}
-
-const std::list<std::string> &Message::getParams() const {
-	return _params;
 }
 
 const std::string &Message::getCmd() const {
@@ -70,8 +63,14 @@ const std::string &Message::getPrefix() const {
 	return _prefix;
 }
 
+const std::vector<std::string> &Message::getParams() const {
+	return _params;
+}
+
 std::ostream &operator<<(std::ostream &os, const Message &message) {
-	std::list< std::string >::const_iterator it = message.getParams().begin();
+	std::vector<std::string>::const_iterator it;
+
+	it = message.getParams().begin();
 	os << "Cmd: " << message.getCmd() << " Prefix: " << message.getPrefix() << " Params: ";
 	while (it != message.getParams().end()) {
 		os << *it;

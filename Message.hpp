@@ -2,6 +2,7 @@
 #define MESSAGE_HPP
 
 #include <list>
+#include <vector>
 #include <string>
 #include <cstring>
 #include <ostream>
@@ -9,18 +10,18 @@
 
 class Message {
 private:
-	std::list< std::string >	_params;
+	std::vector< std::string >	_params;
 	std::string					_cmd;
 	std::string					_prefix;
 
-	Message(std::list<std::string> params, std::string cmd,
+	Message(std::vector<std::string> params, std::string cmd,
 			std::string prefix);
 public:
 	~Message();
-	static std::list< Message* >	parseMessages(std::string msg);
-	const std::list<std::string>	&getParams() const;
+	static void						parseMessages(const std::string& msg, std::list<Message*>& list);
 	const std::string				&getCmd() const;
 	const std::string				&getPrefix() const;
+	const std::vector<std::string>	&getParams() const;
 };
 
 std::ostream &operator<<(std::ostream &os, const Message &message);
