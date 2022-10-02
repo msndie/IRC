@@ -13,6 +13,8 @@
 #include <poll.h>
 #include <cstdlib>
 #include <map>
+#include "utils/utils.h"
+#include <arpa/inet.h>
 #include "User.hpp"
 
 #define BACKLOG 5
@@ -35,12 +37,13 @@ private:
 	void	startListening();
 	void	addToPollSet(int inFd);
 	void	deleteFromPollSet(int i);
-	void	sendAll(const char *msg, ssize_t nbrOfBytes, int receiverFd);
-	void	sendMessageToAll(const char *msg, ssize_t nbrOfBytes, int senderFd);
 	void	receiveMessage(int connectionNbr);
 	void	processMessages(User *user);
-	void	sendMOTD(User *user);
+	void	sendGreeting(User *user);
 	void	checkUserInfo(User *user);
+	void	sendError(User *user, int errorCode, const std::string& arg="");
+	bool	isExistsByNick(const std::string &nick);
+	bool	isNicknameValid(const std::string &nick);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();
