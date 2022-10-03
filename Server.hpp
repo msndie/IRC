@@ -42,8 +42,10 @@ private:
 	void	sendGreeting(User *user);
 	void	checkUserInfo(User *user);
 	void	sendError(User *user, int errorCode, const std::string& arg="");
-	bool	isExistsByNick(const std::string &nick);
+	bool	isExistsByNick(const std::string &nick, int fd=-1);
 	bool	isNicknameValid(const std::string &nick);
+	void	disconnectUsers();
+	void	changeNick(User *user, const std::string& nick);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();

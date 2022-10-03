@@ -39,12 +39,12 @@ bool Server::isNicknameValid(const std::string &nick) {
 	return true;
 }
 
-bool	Server::isExistsByNick(const std::string &nick) {
+bool	Server::isExistsByNick(const std::string &nick, int fd) {
 	std::map<int, User*>::const_iterator	it;
 
 	it = _users.begin();
 	while (it != _users.end()) {
-		if (it->second->isRegistered() && it->second->getNick() == nick) {
+		if (it->second->getFd() != fd && it->second->isRegistered() && it->second->getNick() == nick) {
 			return true;
 		}
 		++it;
@@ -60,8 +60,30 @@ void Server::checkUserInfo(User *user) {
 		return;
 	} else if (user->getPassword() != this->_pass) {
 		sendError(user, ERR_PASSWDMISMATCH);
-	} else if (isExistsByNick(user->getNick())) {
-		sendError(user, ERR_NICKNAMEINUSE, user->getNick());
 	}
 	user->setDisconnect(true);
+}
+
+void Server::changeNick(User *user, const std::string& nick) {
+	std::string	message;
+
+	message += ":" + user->getNick() + "!~" + user->getUsername()
+			+ "@" + user->getHost() + " NICK :" + nick;
+	user->setNick(nick);
+	sendAll(message.c_str(), message.size(), user->getFd());
+}
+
+void	Server::disconnectUsers() {
+	std::map<int, User*>::iterator	it;
+
+	it = _users.begin();
+	while (it != _users.end()) {
+		if (it->second->isDisconnect()) {
+			deleteFromPollSet(it->second->getFd());
+			close(it->second->getFd());
+			it = _users.erase(it);
+		} else {
+			++it;
+		}
+	}
 }

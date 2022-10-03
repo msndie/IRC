@@ -7,6 +7,7 @@
 
 class User {
 private:
+	std::list<Message*>	_messages;
 	std::string			_nick;
 	std::string			_fullName;
 	std::string			_username;
@@ -14,7 +15,6 @@ private:
 	std::string			_host;
 	std::string			_remains;
 	int					_fd;
-	std::list<Message*>	_messages;
 	bool				_registered;
 	bool				_disconnect;
 
@@ -61,6 +61,5 @@ public:
 
 	void						setPassword(const std::string &password);
 };
-
 
 #endif /*IRC_USER_HPP*/

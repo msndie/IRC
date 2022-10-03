@@ -47,33 +47,34 @@ void Server::sendGreeting(User *user) {
 	std::string servName = ":IRC-server ";
 	std::string	rpl;
 
-	rpl += servName + std::to_string(RPL_WELCOME) + " " + user->getNick()
+	rpl += servName + "00" + std::to_string(RPL_WELCOME) + " " + user->getNick()
 		   + " :Welcome " + user->getNick() + "!" + user->getUsername()
 		   + "@" + user->getHost() + "\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
-	std::cout << rpl << std::endl;
 	rpl.clear();
 	rpl += servName + std::to_string(RPL_MOTDSTART) + " " + user->getNick()
 		   + " :Message of the day\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
-	std::cout << rpl << std::endl;
 	rpl.clear();
 	rpl += servName + std::to_string(RPL_MOTD) + " " + user->getNick()
 		   + " :Welcome to my IRC-server :D\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
-	std::cout << rpl << std::endl;
 	rpl.clear();
 	rpl += servName + std::to_string(RPL_ENDOFMOTD) + " " + user->getNick()
 		   + " :End of message of the day\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
-	std::cout << rpl << std::endl;
+	rpl.clear();
+	rpl += ":" + user->getNick() + " MODE " + user->getNick() + " :+iw";
+	sendAll(rpl.c_str(), rpl.size(), user->getFd());
 }
 
 void Server::sendError(User *user, int errorCode, const std::string& arg) {
 	std::string	rpl = ":IRC-server ";
 	std::string	userName;
 
-	if (user->getNick().empty()) {
+	if (user->getNick().empty() && user->getUsername().empty()) {
+		userName += "*";
+	} else if (user->getNick().empty()) {
 		userName += user->getUsername();
 	} else {
 		userName += user->getNick();
@@ -137,13 +138,13 @@ void Server::processMessages(User *user) {
 				}
 			} else if (cmd == "NICK") {
 				if ((*it)->getParams().empty()) {
-					sendError(user, ERR_NEEDMOREPARAMS, cmd);
+					sendError(user, ERR_NONICKNAMEGIVEN, cmd);
 				} else if (!isNicknameValid((*it)->getParams().front())) {
 					sendError(user, ERR_ERRONEUSNICKNAME, (*it)->getParams().front());
-				} else if (isExistsByNick((*it)->getParams().front())) {
+				} else if (isExistsByNick((*it)->getParams().front(), user->getFd())) {
 					sendError(user, ERR_NICKNAMEINUSE, (*it)->getParams().front());
-				} else if (user->isRegistered()) {
-//					TODO
+				} else if (user->isRegistered() && user->getNick() != (*it)->getParams().front()) {
+					changeNick(user, (*it)->getParams().front());
 				} else {
 					user->setNick((*it)->getParams().front());
 				}

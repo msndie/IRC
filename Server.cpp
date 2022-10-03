@@ -121,6 +121,7 @@ void Server::startServer() {
 					}
 				} else {
 					receiveMessage(i);
+					disconnectUsers();
 				}
 			}
 		}
