@@ -64,8 +64,6 @@ void Server::sendGreeting(User *user) {
 		   + " :End of message of the day\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
 	rpl.clear();
-	rpl += ":" + user->getNick() + " MODE " + user->getNick() + " :+iw";
-	sendAll(rpl.c_str(), rpl.size(), user->getFd());
 }
 
 void Server::sendError(User *user, int errorCode, const std::string& arg) {
@@ -119,7 +117,7 @@ void Server::processMessages(User *user) {
 
 	it = user->getMessages().begin();
 	while (it != user->getMessages().end()) {
-		std::string cmd = (*it)->getCmd();
+		const std::string &cmd = (*it)->getCmd();
 		if (cmd == "CAP") {
 			++it;
 			continue;
@@ -129,34 +127,15 @@ void Server::processMessages(User *user) {
 			sendError(user, ERR_NOTREGISTERED);
 		} else {
 			if (cmd == "PASS") {
-				if (user->isRegistered()) {
-					sendError(user, ERR_ALREADYREGISTRED);
-				} else if ((*it)->getParams().empty()) {
-					sendError(user, ERR_NEEDMOREPARAMS, cmd);
-				} else {
-					user->setPassword((*it)->getParams().front());
-				}
+				passCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "NICK") {
-				if ((*it)->getParams().empty()) {
-					sendError(user, ERR_NONICKNAMEGIVEN, cmd);
-				} else if (!isNicknameValid((*it)->getParams().front())) {
-					sendError(user, ERR_ERRONEUSNICKNAME, (*it)->getParams().front());
-				} else if (isExistsByNick((*it)->getParams().front(), user->getFd())) {
-					sendError(user, ERR_NICKNAMEINUSE, (*it)->getParams().front());
-				} else if (user->isRegistered() && user->getNick() != (*it)->getParams().front()) {
-					changeNick(user, (*it)->getParams().front());
-				} else {
-					user->setNick((*it)->getParams().front());
-				}
+				nickCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "USER") {
-				if (user->isRegistered()) {
-					sendError(user, ERR_ALREADYREGISTRED);
-				} else if ((*it)->getParams().size() < 4) {
-					sendError(user, ERR_NEEDMOREPARAMS, cmd);
-				} else {
-					user->setUsername((*it)->getParams()[0]);
-					user->setFullName((*it)->getParams()[3]);
-				}
+				userCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "QUIT") {
+				quitCmd(user, cmd, (*it)->getParams());
+			} else {
+				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}
 		}
 		++it;

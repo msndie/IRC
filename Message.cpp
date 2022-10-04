@@ -10,17 +10,12 @@ Message::~Message() {}
 void Message::parseMessages(const std::string& msg, std::list<Message*>& list) {
 	std::list< std::string >	listMsgs;
 	std::list< std::string >	listCmds;
-//	std::string					msgTmp;
 	std::string					prefix;
 	std::string					cmd;
 	std::vector< std::string >	params;
 
 	listMsgs = split(msg, '\n');
 	while (!listMsgs.empty()) {
-
-//		msgTmp = listMsgs.front();
-//		listCmds = split(msgTmp, ' ');
-//		msgTmp.clear();
 
 		listCmds = split(listMsgs.front(), ' ');
 

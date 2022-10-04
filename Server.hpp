@@ -46,6 +46,11 @@ private:
 	bool	isNicknameValid(const std::string &nick);
 	void	disconnectUsers();
 	void	changeNick(User *user, const std::string& nick);
+
+	void	passCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	nickCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	userCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	quitCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();
