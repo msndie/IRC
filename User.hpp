@@ -60,6 +60,8 @@ public:
 	const std::string			&getPassword() const;
 
 	void						setPassword(const std::string &password);
+
+	std::string					getInfo() const;
 };
 
 #endif /*IRC_USER_HPP*/

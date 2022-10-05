@@ -48,8 +48,7 @@ void Server::sendGreeting(User *user) {
 	std::string	rpl;
 
 	rpl += servName + "00" + std::to_string(RPL_WELCOME) + " " + user->getNick()
-		   + " :Welcome " + user->getNick() + "!" + user->getUsername()
-		   + "@" + user->getHost() + "\n";
+		   + " :Welcome " + user->getInfo() + "\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
 	rpl.clear();
 	rpl += servName + std::to_string(RPL_MOTDSTART) + " " + user->getNick()
@@ -103,6 +102,12 @@ void Server::sendError(User *user, int errorCode, const std::string& arg) {
 		case ERR_PASSWDMISMATCH:
 			rpl += ":Password incorrect";
 			break;
+		case ERR_BADCHANNELKEY:
+			rpl += arg + " :Cannot join channel";
+			break;
+		case ERR_NOSUCHCHANNEL:
+			rpl += arg + " :No such channel";
+			break;
 		default:
 			rpl += ": Unknown error";
 			break;
@@ -118,7 +123,7 @@ void Server::processMessages(User *user) {
 	it = user->getMessages().begin();
 	while (it != user->getMessages().end()) {
 		const std::string &cmd = (*it)->getCmd();
-		if (cmd == "CAP") {
+		if (cmd == "CAP" || cmd == "PING") {
 			++it;
 			continue;
 		}
@@ -134,6 +139,8 @@ void Server::processMessages(User *user) {
 				userCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "QUIT") {
 				quitCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "JOIN") {
+				joinCmd(user, cmd, (*it)->getParams());
 			} else {
 				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}

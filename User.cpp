@@ -92,3 +92,7 @@ const std::string &User::getPassword() const {
 void User::setPassword(const std::string &password) {
 	_password = password;
 }
+
+std::string User::getInfo() const {
+	return _nick + "!" + _username + "@" + _host;
+}

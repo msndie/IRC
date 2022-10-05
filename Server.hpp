@@ -16,20 +16,22 @@
 #include "utils/utils.h"
 #include <arpa/inet.h>
 #include "User.hpp"
+#include "Channel.hpp"
 
 #define BACKLOG 5
 
 class Server {
 private:
-	std::map< int, User* >	_users;
-	struct addrinfo			*_serverInfo;
-	const char				*_port;
-	int 					_socketFd;
-	std::string				_err;
-	struct pollfd			*_pollFds;
-	int						_fdCount;
-	int						_fdPollSize;
-	std::string				_pass;
+	std::map< std::string, Channel* >	_channels;
+	std::map< int, User* >				_users;
+	struct addrinfo						*_serverInfo;
+	const char							*_port;
+	int 								_socketFd;
+	std::string							_err;
+	struct pollfd						*_pollFds;
+	int									_fdCount;
+	int									_fdPollSize;
+	std::string							_pass;
 
 	void	setupStruct();
 	void	createSocket();
@@ -51,6 +53,7 @@ private:
 	void	nickCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	userCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	quitCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	joinCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();

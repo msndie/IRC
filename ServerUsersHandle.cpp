@@ -67,8 +67,7 @@ void Server::checkUserInfo(User *user) {
 void Server::changeNick(User *user, const std::string& nick) {
 	std::string	message;
 
-	message += ":" + user->getNick() + "!~" + user->getUsername()
-			+ "@" + user->getHost() + " NICK :" + nick;
+	message += ":" + user->getInfo() + " NICK :" + nick + "\n";
 	user->setNick(nick);
 	sendAll(message.c_str(), message.size(), user->getFd());
 }

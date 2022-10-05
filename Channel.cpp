@@ -2,11 +2,7 @@
 
 Channel::~Channel() {}
 
-Channel::Channel(User *owner, const std::string &name,
-				 const std::string &pass) : _owner(owner), _name(name), _pass(pass) {}
-
-Channel::Channel(User *owner, const std::string &name, const std::string &topic,
-				 const std::string &pass) : _owner(owner), _name(name), _pass(pass) {}
+Channel::Channel(User *owner, const std::string &name) : _owner(owner), _name(name) {}
 
 void Channel::addUser(User *user) {
 	_users.push_back(user);
@@ -46,10 +42,6 @@ const std::string &Channel::getName() const {
 
 const std::string &Channel::getTopic() const {
 	return _topic;
-}
-
-const std::string &Channel::getPass() const {
-	return _pass;
 }
 
 const std::list<User *> &Channel::getUsers() const {

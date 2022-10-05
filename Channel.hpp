@@ -9,12 +9,10 @@ private:
 	User				*_owner;
 	std::string			_name;
 	std::string			_topic;
-	std::string			_pass;
 	std::list<User*>	_users;
 
 public:
-	explicit Channel(User *owner, const std::string &name, const std::string &pass="");
-	Channel(User *owner, const std::string &name, const std::string &topic, const std::string &pass="");
+	explicit Channel(User *owner, const std::string &name);
 	~Channel();
 
 	void					addUser(User *user);
@@ -24,7 +22,6 @@ public:
 	User					*getOwner() const;
 	const std::string		&getName() const;
 	const std::string		&getTopic() const;
-	const std::string		&getPass() const;
 	const std::list<User*>	&getUsers() const;
 };
 
