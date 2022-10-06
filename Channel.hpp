@@ -27,7 +27,7 @@ public:
 	const std::string		&getTopic() const;
 	const std::list<User*>	&getUsers() const;
 	bool					isAlive() const;
-	void					notifyAllUsers(const std::string &msg);
+	void					notifyAllUsers(const std::string &msg, int fd = -1);
 	static bool				isNameValid(const std::string &name);
 };
 

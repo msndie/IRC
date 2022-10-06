@@ -63,13 +63,15 @@ bool Channel::isAlive() const {
 	return _alive;
 }
 
-void Channel::notifyAllUsers(const std::string &msg) {
+void Channel::notifyAllUsers(const std::string &msg, int fd) {
 	std::list<User*>::iterator	it;
 
 	sendAll(msg.c_str(), msg.size(), _owner->getFd());
 	it = _users.begin();
 	while (it != _users.end()) {
-		sendAll(msg.c_str(), msg.size(), (*it)->getFd());
+		if ((*it)->getFd() != fd) {
+			sendAll(msg.c_str(), msg.size(), (*it)->getFd());
+		}
 		++it;
 	}
 }

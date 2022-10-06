@@ -13,8 +13,9 @@ void	Server::receiveMessage(int connectionNbr) {
 	if (bytes <= 0) {
 
 		if (bytes == 0) {
-			std::cout << "Client with fd " << senderFd
-					  << " close connection" << std::endl;
+//			std::cout << "Client with fd " << senderFd
+//					  << " close connection" << std::endl;
+			quitCmd(user, "QUIT", std::vector<std::string>());
 		} else {
 			std::cerr << "Recv error: " << strerror(errno)
 					  << std::endl;
@@ -22,7 +23,6 @@ void	Server::receiveMessage(int connectionNbr) {
 //		close(senderFd);
 //		deleteFromPollSet(connectionNbr);
 //		_users.erase(senderFd);
-		quitCmd(user, "QUIT", std::vector<std::string>());
 
 	} else {
 
@@ -33,7 +33,7 @@ void	Server::receiveMessage(int connectionNbr) {
 			std::list<Message *>::const_iterator it;
 			it = list.begin();
 			while (it != list.end()) {
-				std::cout << *(*it);
+				std::cout << *(*it) << std::endl;
 				++it;
 			}
 			std::cout << std::endl;
@@ -109,12 +109,20 @@ void Server::sendError(User *user, int errorCode, const std::string& arg) {
 		case ERR_NOSUCHCHANNEL:
 			rpl += arg + " :No such channel";
 			break;
+		case ERR_NORECIPIENT:
+			rpl += ":No recipient given";
+			break;
+		case ERR_NOTEXTTOSEND:
+			rpl += ":No text to send";
+			break;
+		case ERR_NOSUCHNICK:
+			rpl += arg + " :No such nick/channel";
+			break;
 		default:
 			rpl += ": Unknown error";
 			break;
 	}
 	rpl += "\n";
-	std::cout << rpl;
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
 }
 
@@ -142,6 +150,8 @@ void Server::processMessages(User *user) {
 				quitCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "JOIN") {
 				joinCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "PRIVMSG") {
+				msgCmd(user, cmd, (*it)->getParams());
 			} else {
 				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}

@@ -116,8 +116,6 @@ void Server::startServer() {
 						addToPollSet(inFd);
 						user = new User(inFd, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
 						_users.insert(std::make_pair(inFd, user));
-						std::cout << "NEW CONNECTION: fd " << inFd << std::endl;
-						std::cout << "Address " << user->getHost() << std::endl;
 					}
 				} else {
 					receiveMessage(i);
@@ -131,6 +129,47 @@ void Server::startServer() {
 void Server::deleteChannel(Channel *channel) {
 	_channels.erase(channel->getName());
 	delete channel;
+}
+
+void Server::msgCmd(User *user, const std::string &cmd,
+					const std::vector<std::string> &params) {
+	if (params.empty()) {
+		sendError(user, ERR_NORECIPIENT);
+	} else if (params.size() == 1) {
+		sendError(user, ERR_NOTEXTTOSEND);
+	} else {
+		if (params[0][0] == '#') {
+			try {
+				Channel *channel = _channels.at(params[0]);
+				channel->notifyAllUsers(params[1], user->getFd());
+			} catch (std::out_of_range &ex) {
+				sendError(user, ERR_NOSUCHNICK, params[0]);
+			}
+		} else {
+			std::map<int, User *>::iterator	it;
+			std::string						rpl;
+
+			it = _users.begin();
+			while (it != _users.end()) {
+				if (it->second->getNick() == params[0]) {
+					rpl += ":" + user->getInfo() + " PRIVMSG " + it->second->getNick() + " :";
+					std::vector<std::string>::const_iterator iter;
+
+					iter = ++params.begin();
+					while (iter != params.end()) {
+						rpl += *iter++ + " ";
+					}
+					rpl += "\n";
+					sendAll(rpl.c_str(), rpl.size(), it->first);
+					break;
+				}
+				++it;
+			}
+			if (it == _users.end()) {
+				sendError(user, ERR_NOSUCHNICK, params[0]);
+			}
+		}
+	}
 }
 
 const char *Server::LaunchFailed::what() const throw() {

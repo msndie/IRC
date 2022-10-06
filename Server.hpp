@@ -55,6 +55,7 @@ private:
 	void	userCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	quitCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	joinCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	msgCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();
