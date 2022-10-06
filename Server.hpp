@@ -48,6 +48,7 @@ private:
 	bool	isNicknameValid(const std::string &nick);
 	void	disconnectUsers();
 	void	changeNick(User *user, const std::string& nick);
+	void	deleteChannel(Channel *channel);
 
 	void	passCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	nickCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);

@@ -4,10 +4,14 @@
 #include <string>
 #include <list>
 #include "Message.hpp"
+#include "Channel.hpp"
+
+class Channel;
 
 class User {
 private:
 	std::list<Message*>	_messages;
+	std::list<Channel*>	_channels;
 	std::string			_nick;
 	std::string			_fullName;
 	std::string			_username;
@@ -20,6 +24,8 @@ private:
 
 public:
 	User(int fd, const std::string& host);
+
+	friend bool operator==(const User &lhs, const User &rhs);
 
 	const std::string			&getHost() const;
 
@@ -62,6 +68,12 @@ public:
 	void						setPassword(const std::string &password);
 
 	std::string					getInfo() const;
+
+	void						addChannel(Channel *channel);
+
+	void						removeChannel(const std::string &name);
+
+	std::list<Channel *>		&getChannels();
 };
 
 #endif /*IRC_USER_HPP*/

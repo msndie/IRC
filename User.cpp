@@ -96,3 +96,28 @@ void User::setPassword(const std::string &password) {
 std::string User::getInfo() const {
 	return _nick + "!" + _username + "@" + _host;
 }
+
+void User::addChannel(Channel *channel) {
+	_channels.push_back(channel);
+}
+
+void User::removeChannel(const std::string &name) {
+	std::list<Channel*>::iterator	it;
+
+	it = _channels.begin();
+	while (it != _channels.end()) {
+		if ((*it)->getName() == name) {
+			_channels.erase(it);
+			break;
+		}
+		++it;
+	}
+}
+
+std::list<Channel *> &User::getChannels() {
+	return _channels;
+}
+
+bool operator==(const User &lhs, const User &rhs) {
+	return lhs._nick == rhs._nick;
+}

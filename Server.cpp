@@ -128,6 +128,11 @@ void Server::startServer() {
 	}
 }
 
+void Server::deleteChannel(Channel *channel) {
+	_channels.erase(channel->getName());
+	delete channel;
+}
+
 const char *Server::LaunchFailed::what() const throw() {
 	return msg;
 }

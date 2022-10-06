@@ -19,9 +19,10 @@ void	Server::receiveMessage(int connectionNbr) {
 			std::cerr << "Recv error: " << strerror(errno)
 					  << std::endl;
 		}
-		close(senderFd);
-		deleteFromPollSet(connectionNbr);
-		_users.erase(senderFd);
+//		close(senderFd);
+//		deleteFromPollSet(connectionNbr);
+//		_users.erase(senderFd);
+		quitCmd(user, "QUIT", std::vector<std::string>());
 
 	} else {
 

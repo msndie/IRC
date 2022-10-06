@@ -80,6 +80,7 @@ void	Server::disconnectUsers() {
 		if (it->second->isDisconnect()) {
 			deleteFromPollSet(it->second->getFd());
 			close(it->second->getFd());
+			delete it->second;
 			it = _users.erase(it);
 		} else {
 			++it;

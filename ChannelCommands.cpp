@@ -35,15 +35,21 @@ void	Server::joinCmd(User *user, const std::string &cmd, const std::vector<std::
 		sendError(user, ERR_NEEDMOREPARAMS, cmd);
 	} else {
 		std::string	name = params[0];
-		Channel *channel = _channels[name];
-		if (channel) {
+		if (!Channel::isNameValid(name)) {
+			sendError(user, ERR_NOSUCHCHANNEL, name);
+			return;
+		}
+		Channel *channel;
+		try {
+			channel = _channels.at(name);
 			channel->addUser(user);
-		} else {
+		} catch (std::out_of_range &ex) {
 			channel = new Channel(user, name);
 			_channels.insert(std::make_pair(name, channel));
 		}
+		user->addChannel(channel);
 		std::string ret = ":" + user->getInfo() + " JOIN " + name + "\n";
-		sendAll(ret.c_str(), ret.size(), user->getFd());
+		channel->notifyAllUsers(ret);
 		sendChannelInfo(user, channel);
 	}
 }
