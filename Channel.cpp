@@ -66,7 +66,9 @@ bool Channel::isAlive() const {
 void Channel::notifyAllUsers(const std::string &msg, int fd) {
 	std::list<User*>::iterator	it;
 
-	sendAll(msg.c_str(), msg.size(), _owner->getFd());
+	if (_owner->getFd() != fd) {
+		sendAll(msg.c_str(), msg.size(), _owner->getFd());
+	}
 	it = _users.begin();
 	while (it != _users.end()) {
 		if ((*it)->getFd() != fd) {
@@ -86,7 +88,7 @@ bool Channel::isNameValid(const std::string &name) {
 	}
 	for (std::string::size_type i = 0; i < len; ++i) {
 		if ((i == 0 && name[i] != '#')
-			|| specials.find(name[i]) == std::string::npos) {
+			|| specials.find(name[i]) != std::string::npos) {
 			return false;
 		}
 	}

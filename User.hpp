@@ -19,11 +19,14 @@ private:
 	std::string			_host;
 	std::string			_remains;
 	int					_fd;
+	int					_connectionNbr;
+
+private:
 	bool				_registered;
 	bool				_disconnect;
 
 public:
-	User(int fd, const std::string& host);
+	User(int fd, int connectionNbr, const std::string& host);
 
 	friend bool operator==(const User &lhs, const User &rhs);
 
@@ -74,6 +77,8 @@ public:
 	void						removeChannel(const std::string &name);
 
 	std::list<Channel *>		&getChannels();
+
+	int							getConnectionNbr() const;
 };
 
 #endif /*IRC_USER_HPP*/

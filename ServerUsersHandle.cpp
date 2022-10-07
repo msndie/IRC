@@ -18,7 +18,6 @@ void Server::addToPollSet(int inFd) {
 
 void Server::deleteFromPollSet(int i) {
 	_pollFds[i] = _pollFds[--_fdCount];
-//	TODO fix
 }
 
 bool Server::isNicknameValid(const std::string &nick) {
@@ -79,7 +78,7 @@ void	Server::disconnectUsers() {
 	it = _users.begin();
 	while (it != _users.end()) {
 		if (it->second->isDisconnect()) {
-			deleteFromPollSet(it->first);
+			deleteFromPollSet(it->second->getConnectionNbr());
 			close(it->first);
 			delete it->second;
 			it = _users.erase(it);

@@ -2,7 +2,8 @@
 #include "User.hpp"
 #include "utils/utils.h"
 
-User::User(int fd, const std::string &host) : _fd(fd), _host(host) {
+User::User(int fd, int connectionNbr,
+		   const std::string &host) : _fd(fd), _connectionNbr(connectionNbr), _host(host) {
 	_disconnect = false;
 	_registered = false;
 }
@@ -120,4 +121,8 @@ std::list<Channel *> &User::getChannels() {
 
 bool operator==(const User &lhs, const User &rhs) {
 	return lhs._nick == rhs._nick;
+}
+
+int User::getConnectionNbr() const {
+	return _connectionNbr;
 }
