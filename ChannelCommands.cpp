@@ -4,17 +4,7 @@ static void sendChannelInfo(User *user, Channel *channel) {
 	std::string	rpl;
 	std::list<User *>::const_iterator it;
 
-	if (channel->getTopic().empty()) {
-		rpl += ":IRC-server " + std::to_string(RPL_NOTOPIC) + " "
-				+ user->getNick() + " " + channel->getName() + " :No topic is set\n";
-		sendAll(rpl.c_str(), rpl.size(), user->getFd());
-	} else {
-		rpl += ":IRC-server " + std::to_string(RPL_TOPIC) + " "
-			   + user->getNick() + " " + channel->getName() + " :"
-			   + channel->getTopic() + "\n";
-		sendAll(rpl.c_str(), rpl.size(), user->getFd());
-	}
-	rpl.clear();
+	channel->sendTopicInfo(user);
 	rpl += ":IRC-server " + std::to_string(RPL_NAMREPLY) + " " + user->getNick() + " = " + channel->getName() + " :";
 	rpl += "@" + channel->getOwner()->getNick();
 	it = channel->getUsers().begin();

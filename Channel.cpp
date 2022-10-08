@@ -94,3 +94,18 @@ bool Channel::isNameValid(const std::string &name) {
 	}
 	return true;
 }
+
+void Channel::sendTopicInfo(User *user) {
+	std::string	rpl;
+
+	if (_topic.empty()) {
+		rpl += ":IRC-server " + std::to_string(RPL_NOTOPIC) + " "
+			   + user->getNick() + " " + _name + " :No topic is set\n";
+		sendAll(rpl.c_str(), rpl.size(), user->getFd());
+	} else {
+		rpl += ":IRC-server " + std::to_string(RPL_TOPIC) + " "
+			   + user->getNick() + " " + _name + " :"
+			   + _topic + "\n";
+		sendAll(rpl.c_str(), rpl.size(), user->getFd());
+	}
+}

@@ -209,6 +209,32 @@ void Server::partCmd(User *user, const std::string &cmd,
 	}
 }
 
+void Server::topicCmd(User *user, const std::string &cmd,
+					  const std::vector<std::string> &params) {
+	Channel *channel = nullptr;
+
+	if (params.empty()) {
+		sendError(user, ERR_NEEDMOREPARAMS, cmd);
+		return;
+	}
+	std::string name = params[0];
+	try {
+		channel = _channels.at(name);
+	} catch (std::out_of_range &ex) {}
+	if (channel == nullptr || !user->isOnChannel(channel)) {
+		sendError(user, ERR_NOTONCHANNEL, name);
+		return;
+	}
+	if (params.size() > 1) {
+		if (channel->getOwner() != user) {
+			sendError(user, ERR_CHANOPRIVSNEEDED, name);
+			return;
+		}
+		channel->changeTopic(params[1]);
+	}
+	channel->sendTopicInfo(user);
+}
+
 const char *Server::LaunchFailed::what() const throw() {
 	return msg;
 }
