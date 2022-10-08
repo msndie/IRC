@@ -126,3 +126,16 @@ bool operator==(const User &lhs, const User &rhs) {
 int User::getConnectionNbr() const {
 	return _connectionNbr;
 }
+
+bool User::isOnChannel(Channel *channel) {
+	std::list<Channel*>::const_iterator	it;
+
+	it = _channels.begin();
+	while (it != _channels.end()) {
+		if (channel->getName() == (*it)->getName()) {
+			return true;
+		}
+		++it;
+	}
+	return false;
+}

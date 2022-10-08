@@ -118,6 +118,9 @@ void Server::sendError(User *user, int errorCode, const std::string& arg) {
 		case ERR_NOSUCHNICK:
 			rpl += arg + " :No such nick/channel";
 			break;
+		case ERR_NOTONCHANNEL:
+			rpl += arg + " :You're not on that channel";
+			break;
 		default:
 			rpl += ": Unknown error";
 			break;
@@ -152,6 +155,8 @@ void Server::processMessages(User *user) {
 				joinCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "PRIVMSG") {
 				msgCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "PART") {
+				partCmd(user, cmd, (*it)->getParams());
 			} else {
 				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}

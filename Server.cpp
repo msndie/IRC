@@ -153,6 +153,10 @@ void Server::msgCmd(User *user, const std::string &cmd,
 		if (params[0][0] == '#') {
 			try {
 				Channel *channel = _channels.at(params[0]);
+				if (!user->isOnChannel(channel)) {
+					sendError(user, ERR_NOTONCHANNEL, params[0]);
+					return;
+				}
 				rpl += ":" + user->getInfo() + " PRIVMSG " + params[0] + " :";
 				concatMsgs(rpl, params);
 				channel->notifyAllUsers(rpl, user->getFd());
@@ -176,6 +180,32 @@ void Server::msgCmd(User *user, const std::string &cmd,
 				sendError(user, ERR_NOSUCHNICK, params[0]);
 			}
 		}
+	}
+}
+
+void Server::partCmd(User *user, const std::string &cmd,
+					 const std::vector<std::string> &params) {
+	if (params.empty()) {
+		sendError(user, ERR_NEEDMOREPARAMS, cmd);
+	} else {
+
+		try {
+			Channel *channel = _channels.at(params[0]);
+			if (!user->isOnChannel(channel)) {
+				sendError(user, ERR_NOTONCHANNEL, params[0]);
+			} else {
+				std::string	rpl = ":" + user->getInfo() + " PART " + params[0] + "\n";
+				sendAll(rpl.c_str(), rpl.size(), user->getFd());
+				channel->removerUser(user, rpl);
+				user->removeChannel(channel->getName());
+				if (!channel->isAlive()) {
+					deleteChannel(channel);
+				}
+			}
+		} catch (std::out_of_range &ex) {
+			sendError(user, ERR_NOSUCHNICK, params[0]);
+		}
+
 	}
 }
 

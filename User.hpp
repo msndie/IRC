@@ -79,6 +79,8 @@ public:
 	std::list<Channel *>		&getChannels();
 
 	int							getConnectionNbr() const;
+
+	bool						isOnChannel(Channel* channel);
 };
 
 #endif /*IRC_USER_HPP*/
