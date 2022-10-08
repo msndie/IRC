@@ -142,11 +142,11 @@ static void concatMsgs(std::string &rpl, const std::vector<std::string> &params)
 }
 
 void Server::msgCmd(User *user, const std::string &cmd,
-					const std::vector<std::string> &params) {
+					const std::vector<std::string> &params, bool isNotice) {
 	if (params.empty()) {
-		sendError(user, ERR_NORECIPIENT);
+		if (!isNotice) sendError(user, ERR_NORECIPIENT);
 	} else if (params.size() == 1) {
-		sendError(user, ERR_NOTEXTTOSEND);
+		if (!isNotice) sendError(user, ERR_NOTEXTTOSEND);
 	} else {
 		std::string	rpl;
 
@@ -154,14 +154,14 @@ void Server::msgCmd(User *user, const std::string &cmd,
 			try {
 				Channel *channel = _channels.at(params[0]);
 				if (!user->isOnChannel(channel)) {
-					sendError(user, ERR_NOTONCHANNEL, params[0]);
+					if (!isNotice) sendError(user, ERR_NOTONCHANNEL, params[0]);
 					return;
 				}
-				rpl += ":" + user->getInfo() + " PRIVMSG " + params[0] + " :";
+				rpl += ":" + user->getInfo() + (isNotice ? " NOTICE " : " PRIVMSG ") + params[0] + " :";
 				concatMsgs(rpl, params);
 				channel->notifyAllUsers(rpl, user->getFd());
 			} catch (std::out_of_range &ex) {
-				sendError(user, ERR_NOSUCHNICK, params[0]);
+				if (!isNotice) sendError(user, ERR_NOSUCHNICK, params[0]);
 			}
 		} else {
 			std::map<int, User *>::iterator	it;
@@ -169,7 +169,8 @@ void Server::msgCmd(User *user, const std::string &cmd,
 			it = _users.begin();
 			while (it != _users.end()) {
 				if (it->second->getNick() == params[0]) {
-					rpl += ":" + user->getInfo() + " PRIVMSG " + it->second->getNick() + " :";
+					rpl += ":" + user->getInfo() + (isNotice ? " NOTICE " : " PRIVMSG ")
+							+ it->second->getNick() + " :";
 					concatMsgs(rpl, params);
 					sendAll(rpl.c_str(), rpl.size(), it->first);
 					break;
@@ -177,7 +178,7 @@ void Server::msgCmd(User *user, const std::string &cmd,
 				++it;
 			}
 			if (it == _users.end()) {
-				sendError(user, ERR_NOSUCHNICK, params[0]);
+				if (!isNotice) sendError(user, ERR_NOSUCHNICK, params[0]);
 			}
 		}
 	}

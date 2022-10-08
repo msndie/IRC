@@ -157,7 +157,9 @@ void Server::processMessages(User *user) {
 			} else if (cmd == "JOIN") {
 				joinCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "PRIVMSG") {
-				msgCmd(user, cmd, (*it)->getParams());
+				msgCmd(user, cmd, (*it)->getParams(), false);
+			} else if (cmd == "NOTICE") {
+				msgCmd(user, cmd, (*it)->getParams(), true);
 			} else if (cmd == "PART") {
 				partCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "TOPIC") {
