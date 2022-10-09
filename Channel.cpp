@@ -63,8 +63,8 @@ bool Channel::isAlive() const {
 	return _alive;
 }
 
-void Channel::notifyAllUsers(const std::string &msg, int fd) {
-	std::list<User*>::iterator	it;
+void Channel::notifyAllUsers(const std::string &msg, int fd) const {
+	std::list<User*>::const_iterator	it;
 
 	if (msg.empty()) {
 		return;
@@ -98,7 +98,7 @@ bool Channel::isNameValid(const std::string &name) {
 	return true;
 }
 
-void Channel::sendTopicInfo(User *user, bool toAll) {
+void Channel::sendTopicInfo(User *user, bool toAll) const {
 	std::string	rpl;
 
 	if (_topic.empty()) {
@@ -115,4 +115,8 @@ void Channel::sendTopicInfo(User *user, bool toAll) {
 			sendAll(rpl.c_str(), rpl.size(), user->getFd());
 		}
 	}
+}
+
+void Channel::fillStatsForList(std::string &str) const {
+	str += _name + " " + std::to_string(_users.size() + 1) + " :" + _topic + "\n";
 }

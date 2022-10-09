@@ -133,3 +133,32 @@ void Server::kickCmd(User *user, const std::string &cmd,
 		}
 	}
 }
+
+void Server::listCmd(User *user, const std::string &cmd,
+					 const std::vector<std::string> &params) {
+	std::map<std::string, Channel*>::const_iterator	it;
+	std::string templ = ":IRC-server " + std::to_string(RPL_LIST) + " "
+			+ user->getNick() + " ";
+
+	if (params.empty()) {
+		it = _channels.begin();
+		while (it != _channels.end()) {
+			std::string str = templ;
+			it->second->fillStatsForList(str);
+			sendAll(str.c_str(), str.size(), user->getFd());
+			++it;
+		}
+	} else {
+		try {
+			Channel *channel = _channels.at(params[0]);
+			channel->fillStatsForList(templ);
+			sendAll(templ.c_str(), templ.size(), user->getFd());
+		} catch (std::out_of_range &ex) {
+			sendError(user, ERR_NOSUCHNICK, params[0]);
+		}
+	}
+	templ.clear();
+	templ += ":IRC-server " + std::to_string(RPL_LISTEND) + " "
+			+ user->getNick() + " :End of /LIST\n";
+	sendAll(templ.c_str(), templ.size(), user->getFd());
+}

@@ -27,9 +27,10 @@ public:
 	const std::string		&getTopic() const;
 	const std::list<User*>	&getUsers() const;
 	bool					isAlive() const;
-	void					notifyAllUsers(const std::string &msg, int fd = -1);
-	void					sendTopicInfo(User *user, bool toAll);
+	void					notifyAllUsers(const std::string &msg, int fd = -1) const;
+	void					sendTopicInfo(User *user, bool toAll) const;
 	static bool				isNameValid(const std::string &name);
+	void					fillStatsForList(std::string &str) const;
 };
 
 #endif /*IRC_CHANNEL_HPP*/

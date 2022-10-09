@@ -169,6 +169,8 @@ void Server::processMessages(User *user) {
 				topicCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "KICK") {
 				kickCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "LIST") {
+				listCmd(user, cmd, (*it)->getParams());
 			} else {
 				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}

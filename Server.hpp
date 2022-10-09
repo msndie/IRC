@@ -63,6 +63,7 @@ private:
 	void	partCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	topicCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	kickCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	listCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();
