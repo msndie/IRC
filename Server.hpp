@@ -39,16 +39,20 @@ private:
 	void	startListening();
 	void	addToPollSet(int inFd);
 	void	deleteFromPollSet(int i);
+
 	void	receiveMessage(int connectionNbr);
 	void	processMessages(User *user);
 	void	sendGreeting(User *user);
 	void	checkUserInfo(User *user);
 	void	sendError(User *user, int errorCode, const std::string& arg="");
+	void	disconnectUsers();
+	void	deleteChannel(Channel *channel);
+
 	bool	isExistsByNick(const std::string &nick, int fd=-1);
 	bool	isNicknameValid(const std::string &nick);
-	void	disconnectUsers();
 	void	changeNick(User *user, const std::string& nick);
-	void	deleteChannel(Channel *channel);
+	User	*findByNick(const std::string &nick);
+	void	concatMsgs(std::string &rpl, const std::vector<std::string> &params, int start);
 
 	void	passCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	nickCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
@@ -58,6 +62,7 @@ private:
 	void	msgCmd(User *user, const std::string &cmd, const std::vector<std::string> &params, bool isNotice);
 	void	partCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	topicCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	kickCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();
@@ -80,6 +85,5 @@ public:
 		virtual const char* what() const throw();
 	};
 };
-
 
 #endif /*IRC_SERVER_HPP*/

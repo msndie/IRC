@@ -92,8 +92,44 @@ void Server::partCmd(User *user, const std::string &cmd,
 				}
 			}
 		} catch (std::out_of_range &ex) {
-			sendError(user, ERR_NOSUCHNICK, params[0]);
+			sendError(user, ERR_NOSUCHCHANNEL, params[0]);
 		}
 
+	}
+}
+
+void Server::kickCmd(User *user, const std::string &cmd,
+					 const std::vector<std::string> &params) {
+	if (params.size() < 2) {
+		sendError(user, ERR_NEEDMOREPARAMS, cmd);
+	} else {
+		try {
+			Channel *channel = _channels.at(params[0]);
+			if (!user->isOnChannel(channel)) {
+				sendError(user, ERR_NOTONCHANNEL, params[0]);
+			} else if (user != channel->getOwner()) {
+				sendError(user, ERR_CHANOPRIVSNEEDED, params[0]);
+			} else {
+				User *client = findByNick(params[1]);
+				if (!client || !client->isOnChannel(channel)) {
+					sendError(user, ERR_USERNOTINCHANNEL, params[1] + " " + params[0]);
+					return;
+				}
+				if (client == user) {
+					return;
+				}
+				std::string	rpl = ":" + user->getInfo() + " KICK " + params[0] + " " + params[1] + " :";
+				if (params.size() > 2) {
+					concatMsgs(rpl, params, 2);
+				} else {
+					rpl += params[1] + "\n";
+				}
+				channel->notifyAllUsers(rpl);
+				channel->removerUser(client, "");
+				client->removeChannel(channel->getName());
+			}
+		} catch (std::out_of_range &ex) {
+			sendError(user, ERR_NOSUCHCHANNEL, params[0]);
+		}
 	}
 }

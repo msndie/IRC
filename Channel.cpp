@@ -66,6 +66,9 @@ bool Channel::isAlive() const {
 void Channel::notifyAllUsers(const std::string &msg, int fd) {
 	std::list<User*>::iterator	it;
 
+	if (msg.empty()) {
+		return;
+	}
 	if (_owner->getFd() != fd) {
 		sendAll(msg.c_str(), msg.size(), _owner->getFd());
 	}

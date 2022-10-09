@@ -130,6 +130,9 @@ int User::getConnectionNbr() const {
 bool User::isOnChannel(Channel *channel) {
 	std::list<Channel*>::const_iterator	it;
 
+	if (channel->getOwner() == this) {
+		return true;
+	}
 	it = _channels.begin();
 	while (it != _channels.end()) {
 		if (channel->getName() == (*it)->getName()) {

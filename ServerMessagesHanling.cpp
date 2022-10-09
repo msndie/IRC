@@ -124,6 +124,9 @@ void Server::sendError(User *user, int errorCode, const std::string& arg) {
 		case ERR_CHANOPRIVSNEEDED:
 			rpl += arg + " :You're not channel operator";
 			break;
+		case ERR_USERNOTINCHANNEL:
+			rpl += arg + " :They aren't on that channel";
+			break;
 		default:
 			rpl += ": Unknown error";
 			break;
@@ -164,6 +167,8 @@ void Server::processMessages(User *user) {
 				partCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "TOPIC") {
 				topicCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "KICK") {
+				kickCmd(user, cmd, (*it)->getParams());
 			} else {
 				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}

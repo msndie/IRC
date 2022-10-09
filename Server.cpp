@@ -131,12 +131,20 @@ void Server::deleteChannel(Channel *channel) {
 	delete channel;
 }
 
-static void concatMsgs(std::string &rpl, const std::vector<std::string> &params) {
+void Server::concatMsgs(std::string &rpl, const std::vector<std::string> &params, int start) {
 	std::vector<std::string>::const_iterator iter;
 
-	iter = ++params.begin();
+	iter = params.begin();
+	while (start != 0) {
+		++iter;
+		--start;
+	}
 	while (iter != params.end()) {
-		rpl += *iter++ + " ";
+		rpl += *iter;
+		++iter;
+		if (iter != params.end()) {
+			rpl += " ";
+		}
 	}
 	rpl += "\n";
 }
@@ -158,7 +166,7 @@ void Server::msgCmd(User *user, const std::string &cmd,
 					return;
 				}
 				rpl += ":" + user->getInfo() + (isNotice ? " NOTICE " : " PRIVMSG ") + params[0] + " :";
-				concatMsgs(rpl, params);
+				concatMsgs(rpl, params, 1);
 				channel->notifyAllUsers(rpl, user->getFd());
 			} catch (std::out_of_range &ex) {
 				if (!isNotice) sendError(user, ERR_NOSUCHNICK, params[0]);
@@ -171,7 +179,7 @@ void Server::msgCmd(User *user, const std::string &cmd,
 				if (it->second->getNick() == params[0]) {
 					rpl += ":" + user->getInfo() + (isNotice ? " NOTICE " : " PRIVMSG ")
 							+ it->second->getNick() + " :";
-					concatMsgs(rpl, params);
+					concatMsgs(rpl, params, 1);
 					sendAll(rpl.c_str(), rpl.size(), it->first);
 					break;
 				}
@@ -182,6 +190,19 @@ void Server::msgCmd(User *user, const std::string &cmd,
 			}
 		}
 	}
+}
+
+User *Server::findByNick(const std::string &nick) {
+	std::map<int, User*>::const_iterator	it;
+
+	it = _users.begin();
+	while (it != _users.end()) {
+		if (it->second->getNick() == nick) {
+			return it->second;
+		}
+		++it;
+	}
+	return nullptr;
 }
 
 const char *Server::LaunchFailed::what() const throw() {
