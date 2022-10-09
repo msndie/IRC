@@ -114,7 +114,7 @@ void Server::startServer() {
 						std::cerr << "Accept error: " << strerror(errno) << std::endl;
 					} else {
 						addToPollSet(inFd);
-						user = new User(inFd, i, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
+						user = new User(inFd, _fdCount - 1, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
 						_users.insert(std::make_pair(inFd, user));
 					}
 				} else {
@@ -182,58 +182,6 @@ void Server::msgCmd(User *user, const std::string &cmd,
 			}
 		}
 	}
-}
-
-void Server::partCmd(User *user, const std::string &cmd,
-					 const std::vector<std::string> &params) {
-	if (params.empty()) {
-		sendError(user, ERR_NEEDMOREPARAMS, cmd);
-	} else {
-
-		try {
-			Channel *channel = _channels.at(params[0]);
-			if (!user->isOnChannel(channel)) {
-				sendError(user, ERR_NOTONCHANNEL, params[0]);
-			} else {
-				std::string	rpl = ":" + user->getInfo() + " PART " + params[0] + "\n";
-				sendAll(rpl.c_str(), rpl.size(), user->getFd());
-				channel->removerUser(user, rpl);
-				user->removeChannel(channel->getName());
-				if (!channel->isAlive()) {
-					deleteChannel(channel);
-				}
-			}
-		} catch (std::out_of_range &ex) {
-			sendError(user, ERR_NOSUCHNICK, params[0]);
-		}
-
-	}
-}
-
-void Server::topicCmd(User *user, const std::string &cmd,
-					  const std::vector<std::string> &params) {
-	Channel *channel = nullptr;
-
-	if (params.empty()) {
-		sendError(user, ERR_NEEDMOREPARAMS, cmd);
-		return;
-	}
-	std::string name = params[0];
-	try {
-		channel = _channels.at(name);
-	} catch (std::out_of_range &ex) {}
-	if (channel == nullptr || !user->isOnChannel(channel)) {
-		sendError(user, ERR_NOTONCHANNEL, name);
-		return;
-	}
-	if (params.size() > 1) {
-		if (channel->getOwner() != user) {
-			sendError(user, ERR_CHANOPRIVSNEEDED, name);
-			return;
-		}
-		channel->changeTopic(params[1]);
-	}
-	channel->sendTopicInfo(user);
 }
 
 const char *Server::LaunchFailed::what() const throw() {

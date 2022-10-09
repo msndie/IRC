@@ -17,7 +17,9 @@ void Server::addToPollSet(int inFd) {
 }
 
 void Server::deleteFromPollSet(int i) {
-	_pollFds[i] = _pollFds[--_fdCount];
+	_pollFds[i].fd = -1;
+	--_fdCount;
+//	_pollFds[i] = _pollFds[--_fdCount];
 }
 
 bool Server::isNicknameValid(const std::string &nick) {
