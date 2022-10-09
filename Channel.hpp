@@ -31,6 +31,7 @@ public:
 	void					sendTopicInfo(User *user, bool toAll) const;
 	static bool				isNameValid(const std::string &name);
 	void					fillStatsForList(std::string &str) const;
+	void					fillNicksForNames(std::string &str) const;
 };
 
 #endif /*IRC_CHANNEL_HPP*/

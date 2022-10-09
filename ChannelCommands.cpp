@@ -32,6 +32,9 @@ void	Server::joinCmd(User *user, const std::string &cmd, const std::vector<std::
 		Channel *channel;
 		try {
 			channel = _channels.at(name);
+			if (user->isOnChannel(channel)) {
+				return;
+			}
 			channel->addUser(user);
 		} catch (std::out_of_range &ex) {
 			channel = new Channel(user, name);
@@ -161,4 +164,47 @@ void Server::listCmd(User *user, const std::string &cmd,
 	templ += ":IRC-server " + std::to_string(RPL_LISTEND) + " "
 			+ user->getNick() + " :End of /LIST\n";
 	sendAll(templ.c_str(), templ.size(), user->getFd());
+}
+
+void Server::namesCmd(User *user, const std::string &cmd,
+					  const std::vector<std::string> &params) {
+	std::map<std::string, Channel*>::const_iterator	it;
+	std::map<int, User*>::const_iterator itForUsers;
+	std::string templ = ":IRC-server " + std::to_string(RPL_NAMREPLY) + " "
+						+ user->getNick() + " = ";
+
+	if (params.empty()) {
+		it = _channels.begin();
+		while (it != _channels.end()) {
+			std::string str = templ;
+			it->second->fillNicksForNames(str);
+			sendAll(str.c_str(), str.size(), user->getFd());
+			++it;
+		}
+		templ.clear();
+		templ += ":IRC-server " + std::to_string(RPL_NAMREPLY) + " "
+				+ user->getNick() + " * * :";
+		itForUsers = _users.begin();
+		while (itForUsers != _users.end()) {
+			if (itForUsers->second->getChannels().empty()) {
+				templ += itForUsers->second->getNick() + " ";
+			}
+			++itForUsers;
+		}
+		templ += "\n";
+		sendAll(templ.c_str(), templ.size(), user->getFd());
+		templ.clear();
+		templ += ":IRC-server " + std::to_string(RPL_ENDOFNAMES) + " "
+				+ user->getNick() + " * :End of /NAMES list.\n";
+		sendAll(templ.c_str(), templ.size(), user->getFd());
+	} else {
+		try {
+			_channels.at(params[0])->fillNicksForNames(templ);
+			sendAll(templ.c_str(), templ.size(), user->getFd());
+		} catch (std::out_of_range &ex) {}
+		templ.clear();
+		templ += ":IRC-server " + std::to_string(RPL_ENDOFNAMES) + " "
+				 + user->getNick() + " " + params[0] + " :End of /NAMES list.\n";
+		sendAll(templ.c_str(), templ.size(), user->getFd());
+	}
 }

@@ -120,3 +120,23 @@ void Channel::sendTopicInfo(User *user, bool toAll) const {
 void Channel::fillStatsForList(std::string &str) const {
 	str += _name + " " + std::to_string(_users.size() + 1) + " :" + _topic + "\n";
 }
+
+void Channel::fillNicksForNames(std::string &str) const {
+	std::list<User*>::const_iterator	it;
+
+	str += _name + " :@" + _owner->getNick();
+	if (_users.empty()) {
+		str += "\n";
+		return;
+	}
+	str += " ";
+	it = _users.begin();
+	while (it != _users.end()) {
+		str += (*it)->getNick();
+		++it;
+		if (it != _users.end()) {
+			str += " ";
+		}
+	}
+	str += "\n";
+}
