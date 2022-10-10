@@ -20,10 +20,9 @@ private:
 	std::string			_remains;
 	int					_fd;
 	int					_connectionNbr;
-
-private:
 	bool				_registered;
 	bool				_disconnect;
+	bool				_operator;
 
 public:
 	User(int fd, int connectionNbr, const std::string& host);
@@ -81,6 +80,10 @@ public:
 	int							getConnectionNbr() const;
 
 	bool						isOnChannel(Channel* channel);
+
+	bool isOperator() const;
+
+	void setOperator(bool oper);
 };
 
 #endif /*IRC_USER_HPP*/

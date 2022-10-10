@@ -20,7 +20,7 @@ public:
 
 	void					addUser(User *user);
 	void					changeTopic(const std::string &topic);
-	void					removerUser(User *user, const std::string &msg);
+	void					removerUser(User *user, const std::string &msg, int fd = -1);
 	void					changeOwner();
 	User					*getOwner() const;
 	const std::string		&getName() const;

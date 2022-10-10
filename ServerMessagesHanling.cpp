@@ -127,6 +127,12 @@ void Server::sendError(User *user, int errorCode, const std::string& arg) {
 		case ERR_USERNOTINCHANNEL:
 			rpl += arg + " :They aren't on that channel";
 			break;
+		case ERR_NOORIGIN:
+			rpl += ":No origin specified";
+			break;
+		case ERR_NOPRIVILEGES:
+			rpl += ":Permission Denied- You're not an IRC operator";
+			break;
 		default:
 			rpl += ": Unknown error";
 			break;
@@ -141,7 +147,7 @@ void Server::processMessages(User *user) {
 	it = user->getMessages().begin();
 	while (it != user->getMessages().end()) {
 		const std::string &cmd = (*it)->getCmd();
-		if (cmd == "CAP" || cmd == "PING") {
+		if (cmd == "CAP") {
 			++it;
 			continue;
 		}
@@ -173,6 +179,12 @@ void Server::processMessages(User *user) {
 				listCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "NAMES") {
 				namesCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "OPER") {
+				operCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "PING") {
+				pingCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "KILL") {
+				killCmd(user, cmd, (*it)->getParams());
 			} else {
 				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}

@@ -17,6 +17,7 @@
 #include <arpa/inet.h>
 #include "User.hpp"
 #include "Channel.hpp"
+#include "Configuration.hpp"
 
 #define BACKLOG 5
 
@@ -32,6 +33,8 @@ private:
 	int									_fdCount;
 	int									_fdPollSize;
 	std::string							_pass;
+	std::string							_name;
+	Configuration						*_configuration;
 
 	void	setupStruct();
 	void	createSocket();
@@ -65,6 +68,9 @@ private:
 	void	kickCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	listCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	namesCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	operCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	pingCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	killCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();

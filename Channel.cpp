@@ -15,12 +15,12 @@ void Channel::changeTopic(const std::string &topic) {
 	_topic = topic;
 }
 
-void Channel::removerUser(User *user, const std::string &msg) {
+void Channel::removerUser(User *user, const std::string &msg, int fd) {
 	std::list<User*>::iterator	it;
 
 	if (_owner == user && !_users.empty()) {
 		changeOwner();
-		notifyAllUsers(msg);
+		notifyAllUsers(msg, fd);
 	} else if (_owner == user && _users.empty()) {
 		_alive = false;
 	} else {
@@ -33,7 +33,7 @@ void Channel::removerUser(User *user, const std::string &msg) {
 				++it;
 			}
 		}
-		notifyAllUsers(msg);
+		notifyAllUsers(msg, fd);
 	}
 }
 

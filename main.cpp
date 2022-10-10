@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 	server = new Server(argv[1], pass.c_str());
 	try {
 		server->startServer();
-	} catch (Server::LaunchFailed& ex) {
+	} catch (std::exception& ex) {
 		std::cerr << ex.what() << std::endl;
 		return (1);
 	}

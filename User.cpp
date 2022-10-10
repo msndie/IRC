@@ -1,4 +1,3 @@
-#include <iostream>
 #include "User.hpp"
 #include "utils/utils.h"
 
@@ -6,6 +5,7 @@ User::User(int fd, int connectionNbr,
 		   const std::string &host) : _fd(fd), _connectionNbr(connectionNbr), _host(host) {
 	_disconnect = false;
 	_registered = false;
+	_operator = false;
 }
 
 const std::string &User::getHost() const {
@@ -141,4 +141,12 @@ bool User::isOnChannel(Channel *channel) {
 		++it;
 	}
 	return false;
+}
+
+bool User::isOperator() const {
+	return _operator;
+}
+
+void User::setOperator(bool oper) {
+	_operator = oper;
 }

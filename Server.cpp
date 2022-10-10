@@ -3,6 +3,7 @@
 Server::Server(const char* port, const char* password) : _port(port), _pass(password) {
 	_serverInfo = nullptr;
 	_pollFds = nullptr;
+	_configuration = nullptr;
 	_socketFd = -1;
 	_fdCount = 0;
 	_fdPollSize = 5;
@@ -77,6 +78,9 @@ void Server::startServer() {
 		_err.clear();
 	}
 
+	_configuration = new Configuration();
+	_configuration->parseConfiguration("../resources/configuration.yaml");
+	_name = _configuration->getConfig().at("server.name");
 	setupStruct();
 	createSocket();
 	bindSocketToPort();
@@ -116,6 +120,7 @@ void Server::startServer() {
 						addToPollSet(inFd);
 						user = new User(inFd, _fdCount - 1, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
 						_users.insert(std::make_pair(inFd, user));
+						std::cout << "Fd count - " << _fdCount << " fd - " << inFd << std::endl;
 					}
 				} else {
 					receiveMessage(i);
@@ -203,6 +208,79 @@ User *Server::findByNick(const std::string &nick) {
 		++it;
 	}
 	return nullptr;
+}
+
+void Server::operCmd(User *user, const std::string &cmd,
+					 const std::vector<std::string> &params) {
+	if (params.size() < 2) {
+		sendError(user, ERR_NEEDMOREPARAMS, cmd);
+	} else {
+		std::string name = params[0];
+		std::string pass = params[1];
+		std::map<std::string, std::string>::const_iterator it;
+
+		it = _configuration->getConfig().find("server.operators." + name);
+		if (it == _configuration->getConfig().end() || it->second != pass) {
+			sendError(user, ERR_PASSWDMISMATCH);
+			return;
+		}
+		std::string	rpl = ":" + _name + " " + std::to_string(RPL_YOUREOPER)
+				+ " " + user->getNick() + " :You are now an IRC operator\n";
+		sendAll(rpl.c_str(), rpl.size(), user->getFd());
+		rpl.clear();
+		rpl += ":" + _name + " MODE " + user->getNick() + " +o\n";
+		sendAll(rpl.c_str(), rpl.size(), user->getFd());
+		user->setOperator(true);
+	}
+}
+
+void Server::pingCmd(User *user, const std::string &cmd,
+					 const std::vector<std::string> &params) {
+	if (params.empty()) {
+		sendError(user, ERR_NOORIGIN);
+	} else {
+		std::string rpl = "PONG " + _name + "\n";
+		sendAll(rpl.c_str(), rpl.size(), user->getFd());
+	}
+}
+
+void Server::killCmd(User *user, const std::string &cmd,
+					 const std::vector<std::string> &params) {
+	if (!user->isOperator()) {
+		sendError(user, ERR_NOPRIVILEGES);
+	} else if (params.size() < 1) {
+		sendError(user, ERR_NEEDMOREPARAMS, cmd);
+	} else {
+		if (user->getNick() == params[0]) return;
+		User *client = findByNick(params[0]);
+		if (!client) {
+			sendError(user, ERR_NOSUCHNICK, params[0]);
+		} else {
+			std::list<Channel*>::iterator	it;
+			Channel	*channel;
+			std::string	rpl = ":" + user->getInfo() + " KILL " + params[0];
+			if (params.size() > 1) {
+				rpl += " :";
+				concatMsgs(rpl, params, 1);
+			} else {
+				rpl += "\n";
+			}
+			sendAll(rpl.c_str(), rpl.size(), user->getFd());
+			sendAll(rpl.c_str(), rpl.size(), client->getFd());
+			client->setDisconnect(true);
+			it = client->getChannels().begin();
+			while (it != client->getChannels().end()) {
+				(*it)->removerUser(client, rpl, client->getFd());
+				if ((*it)->isAlive()) {
+					++it;
+				} else {
+					channel = *it;
+					deleteChannel(channel);
+					it = client->getChannels().erase(it);
+				}
+			}
+		}
+	}
 }
 
 const char *Server::LaunchFailed::what() const throw() {
