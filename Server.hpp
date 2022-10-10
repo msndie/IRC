@@ -40,8 +40,9 @@ private:
 	void	createSocket();
 	void 	bindSocketToPort();
 	void	startListening();
-	void	addToPollSet(int inFd);
+	int		addToPollSet(int inFd);
 	void	deleteFromPollSet(int i);
+	void	initPollFdSet();
 
 	void	receiveMessage(int connectionNbr);
 	void	processMessages(User *user);

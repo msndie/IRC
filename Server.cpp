@@ -68,6 +68,19 @@ void Server::startListening() {
 	}
 }
 
+void Server::initPollFdSet() {
+	_pollFds = static_cast<pollfd *>(malloc(sizeof(struct pollfd) * _fdPollSize));
+	if (_pollFds == nullptr) {
+		close(_socketFd);
+		throw LaunchFailed("Malloc error");
+	}
+	_pollFds[0].fd = _socketFd;
+	_pollFds[0].events = POLLIN;
+	for (int i = 1; i < _fdPollSize; ++i) {
+		_pollFds[i].fd = -1;
+	}
+}
+
 void Server::startServer() {
 	User*	user;
 	struct sockaddr_storage remoteAddr;
@@ -86,21 +99,12 @@ void Server::startServer() {
 	bindSocketToPort();
 	freeaddrinfo(_serverInfo);
 	startListening();
-
-	_pollFds = static_cast<pollfd *>(malloc(sizeof(struct pollfd) * _fdPollSize));
-	if (_pollFds == nullptr) {
-		close(_socketFd);
-		throw LaunchFailed("Malloc error");
-	}
-
-	_pollFds[0].fd = _socketFd;
-	_pollFds[0].events = POLLIN;
-	_fdCount++;
+	initPollFdSet();
 
 	std::cout << "Server waiting for connection" << std::endl;
 
 	while (true) {
-		int pollCount = poll(_pollFds, _fdCount, -1);
+		int pollCount = poll(_pollFds, _fdPollSize, -1);
 
 		if (pollCount == -1) {
 			_err.append("An error on poll: ");
@@ -108,7 +112,7 @@ void Server::startServer() {
 			throw RuntimeServerError(_err.c_str());
 		}
 
-		for (int i = 0; i < _fdCount; i++) {
+		for (int i = 0; i < _fdPollSize; i++) {
 
 			if (_pollFds[i].revents & POLLIN) {
 				if (_pollFds[i].fd == _socketFd) {
@@ -117,10 +121,8 @@ void Server::startServer() {
 					if (inFd == -1) {
 						std::cerr << "Accept error: " << strerror(errno) << std::endl;
 					} else {
-						addToPollSet(inFd);
-						user = new User(inFd, _fdCount - 1, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
+						user = new User(inFd, addToPollSet(inFd), inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
 						_users.insert(std::make_pair(inFd, user));
-						std::cout << "Fd count - " << _fdCount << " fd - " << inFd << std::endl;
 					}
 				} else {
 					receiveMessage(i);

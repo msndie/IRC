@@ -1,7 +1,13 @@
 #include "Server.hpp"
 
-void Server::addToPollSet(int inFd) {
-	if (_fdCount == _fdPollSize) {
+int Server::addToPollSet(int inFd) {
+	int i = 0;
+
+	while (i < _fdPollSize) {
+		if (_pollFds[i].fd == -1) break;
+		++i;
+	}
+	if (i == _fdPollSize) {
 		_fdPollSize *= 2;
 		_pollFds = static_cast<pollfd *>(reallocf(_pollFds,
 												  (sizeof(struct pollfd) *
@@ -10,15 +16,21 @@ void Server::addToPollSet(int inFd) {
 			close(_socketFd);
 			throw RuntimeServerError("Malloc error");
 		}
+		for (int j = i + 1; j < _fdPollSize; ++j) {
+			_pollFds[j].fd = -1;
+		}
 	}
-	_pollFds[_fdCount].fd = inFd;
-	_pollFds[_fdCount].events = POLLIN;
-	_fdCount++;
+	_pollFds[i].fd = inFd;
+	_pollFds[i].events = POLLIN;
+	return i;
+//	_pollFds[_fdCount].fd = inFd;
+//	_pollFds[_fdCount].events = POLLIN;
+//	_fdCount++;
 }
 
 void Server::deleteFromPollSet(int i) {
 	_pollFds[i].fd = -1;
-	--_fdCount;
+//	--_fdCount;
 }
 
 bool Server::isNicknameValid(const std::string &nick) {
