@@ -267,8 +267,10 @@ void Server::killCmd(User *user, const std::string &cmd,
 			} else {
 				rpl += "\n";
 			}
-			sendAll(rpl.c_str(), rpl.size(), user->getFd());
 			sendAll(rpl.c_str(), rpl.size(), client->getFd());
+			rpl.clear();
+			rpl += ":" + client->getInfo() + " QUIT :Has been killed by "
+					+ user->getNick() + "\n";
 			client->setDisconnect(true);
 			it = client->getChannels().begin();
 			while (it != client->getChannels().end()) {
