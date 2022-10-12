@@ -21,7 +21,7 @@ void Configuration::parseConfiguration(const std::string &path) {
 	std::ifstream				ifs;
 	std::string					totalLine;
 	std::string					line;
-	size_t						space_count = 0;
+	size_t						space_count;
 	size_t						last_space_count = 0;
 
 	ifs.open(path, std::ifstream::in);
@@ -59,6 +59,7 @@ void Configuration::parseConfiguration(const std::string &path) {
 									 line.substr(line.find(':') + 2)));
 		}
 	}
+	ifs.close();
 	checkConfig();
 }
 

@@ -1,3 +1,4 @@
+#include <fstream>
 #include "Server.hpp"
 
 Server::Server(const char* port, const char* password) : _port(port), _pass(password) {
@@ -81,6 +82,57 @@ void Server::initPollFdSet() {
 	}
 }
 
+void Server::deleteChannel(Channel *channel) {
+	_channels.erase(channel->getName());
+	delete channel;
+}
+
+void Server::prepareMotd() {
+	std::ifstream	ifs;
+	std::string		line;
+	std::string		templ;
+
+	ifs.open("../resources/message.motd", std::ifstream::in);
+	if (!ifs.is_open()) {
+		return;
+	}
+	while (getline(ifs, line)) {
+		_motd.push_back(line);
+	}
+	ifs.close();
+}
+
+void Server::concatMsgs(std::string &rpl, const std::vector<std::string> &params, int start) {
+	std::vector<std::string>::const_iterator iter;
+
+	iter = params.begin();
+	while (start != 0) {
+		++iter;
+		--start;
+	}
+	while (iter != params.end()) {
+		rpl += *iter;
+		++iter;
+		if (iter != params.end()) {
+			rpl += " ";
+		}
+	}
+	rpl += "\n";
+}
+
+User *Server::findByNick(const std::string &nick) {
+	std::map<int, User*>::const_iterator	it;
+
+	it = _users.begin();
+	while (it != _users.end()) {
+		if (it->second->getNick() == nick) {
+			return it->second;
+		}
+		++it;
+	}
+	return nullptr;
+}
+
 void Server::startServer() {
 	User*	user;
 	struct sockaddr_storage remoteAddr;
@@ -100,6 +152,7 @@ void Server::startServer() {
 	freeaddrinfo(_serverInfo);
 	startListening();
 	initPollFdSet();
+	prepareMotd();
 
 	std::cout << "Server waiting for connection" << std::endl;
 
@@ -127,165 +180,6 @@ void Server::startServer() {
 				} else {
 					receiveMessage(i);
 					disconnectUsers();
-				}
-			}
-		}
-	}
-}
-
-void Server::deleteChannel(Channel *channel) {
-	_channels.erase(channel->getName());
-	delete channel;
-}
-
-void Server::concatMsgs(std::string &rpl, const std::vector<std::string> &params, int start) {
-	std::vector<std::string>::const_iterator iter;
-
-	iter = params.begin();
-	while (start != 0) {
-		++iter;
-		--start;
-	}
-	while (iter != params.end()) {
-		rpl += *iter;
-		++iter;
-		if (iter != params.end()) {
-			rpl += " ";
-		}
-	}
-	rpl += "\n";
-}
-
-void Server::msgCmd(User *user, const std::string &cmd,
-					const std::vector<std::string> &params, bool isNotice) {
-	if (params.empty()) {
-		if (!isNotice) sendError(user, ERR_NORECIPIENT);
-	} else if (params.size() == 1) {
-		if (!isNotice) sendError(user, ERR_NOTEXTTOSEND);
-	} else {
-		std::string	rpl;
-
-		if (params[0][0] == '#') {
-			try {
-				Channel *channel = _channels.at(params[0]);
-				if (!user->isOnChannel(channel)) {
-					if (!isNotice) sendError(user, ERR_NOTONCHANNEL, params[0]);
-					return;
-				}
-				rpl += ":" + user->getInfo() + (isNotice ? " NOTICE " : " PRIVMSG ") + params[0] + " :";
-				concatMsgs(rpl, params, 1);
-				std::set<int> fds;
-				fds.insert(user->getFd());
-				channel->notifyAllUsers(rpl, &fds);
-			} catch (std::out_of_range &ex) {
-				if (!isNotice) sendError(user, ERR_NOSUCHNICK, params[0]);
-			}
-		} else {
-			std::map<int, User *>::iterator	it;
-
-			it = _users.begin();
-			while (it != _users.end()) {
-				if (it->second->getNick() == params[0]) {
-					rpl += ":" + user->getInfo() + (isNotice ? " NOTICE " : " PRIVMSG ")
-							+ it->second->getNick() + " :";
-					concatMsgs(rpl, params, 1);
-					sendAll(rpl.c_str(), rpl.size(), it->first);
-					break;
-				}
-				++it;
-			}
-			if (it == _users.end()) {
-				if (!isNotice) sendError(user, ERR_NOSUCHNICK, params[0]);
-			}
-		}
-	}
-}
-
-User *Server::findByNick(const std::string &nick) {
-	std::map<int, User*>::const_iterator	it;
-
-	it = _users.begin();
-	while (it != _users.end()) {
-		if (it->second->getNick() == nick) {
-			return it->second;
-		}
-		++it;
-	}
-	return nullptr;
-}
-
-void Server::operCmd(User *user, const std::string &cmd,
-					 const std::vector<std::string> &params) {
-	if (params.size() < 2) {
-		sendError(user, ERR_NEEDMOREPARAMS, cmd);
-	} else {
-		std::string name = params[0];
-		std::string pass = params[1];
-		std::map<std::string, std::string>::const_iterator it;
-
-		it = _configuration->getConfig().find("server.operators." + name);
-		if (it == _configuration->getConfig().end() || it->second != pass) {
-			sendError(user, ERR_PASSWDMISMATCH);
-			return;
-		}
-		std::string	rpl = ":" + _name + " " + std::to_string(RPL_YOUREOPER)
-				+ " " + user->getNick() + " :You are now an IRC operator\n";
-		sendAll(rpl.c_str(), rpl.size(), user->getFd());
-		rpl.clear();
-		rpl += ":" + _name + " MODE " + user->getNick() + " +o\n";
-		sendAll(rpl.c_str(), rpl.size(), user->getFd());
-		user->setOperator(true);
-	}
-}
-
-void Server::pingCmd(User *user, const std::string &cmd,
-					 const std::vector<std::string> &params) {
-	if (params.empty()) {
-		sendError(user, ERR_NOORIGIN);
-	} else {
-		std::string rpl = "PONG " + _name + "\n";
-		sendAll(rpl.c_str(), rpl.size(), user->getFd());
-	}
-}
-
-void Server::killCmd(User *user, const std::string &cmd,
-					 const std::vector<std::string> &params) {
-	if (!user->isOperator()) {
-		sendError(user, ERR_NOPRIVILEGES);
-	} else if (params.size() < 1) {
-		sendError(user, ERR_NEEDMOREPARAMS, cmd);
-	} else {
-		if (user->getNick() == params[0]) return;
-		User *client = findByNick(params[0]);
-		if (!client) {
-			sendError(user, ERR_NOSUCHNICK, params[0]);
-		} else {
-			std::list<Channel*>::iterator	it;
-			Channel	*channel;
-			std::string	rpl = ":" + user->getInfo() + " KILL " + params[0];
-			std::set<int> fds;
-
-			if (params.size() > 1) {
-				rpl += " :";
-				concatMsgs(rpl, params, 1);
-			} else {
-				rpl += "\n";
-			}
-			sendAll(rpl.c_str(), rpl.size(), client->getFd());
-			fds.insert(client->getFd());
-			rpl.clear();
-			rpl += ":" + client->getInfo() + " QUIT :Has been killed by "
-					+ user->getNick() + "\n";
-			client->setDisconnect(true);
-			it = client->getChannels().begin();
-			while (it != client->getChannels().end()) {
-				(*it)->removerUser(client, rpl, &fds);
-				if ((*it)->isAlive()) {
-					++it;
-				} else {
-					channel = *it;
-					deleteChannel(channel);
-					it = client->getChannels().erase(it);
 				}
 			}
 		}

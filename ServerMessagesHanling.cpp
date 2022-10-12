@@ -45,7 +45,7 @@ void	Server::receiveMessage(int connectionNbr) {
 }
 
 void Server::sendGreeting(User *user) {
-	std::string servName = ":IRC-server ";
+	std::string servName = ":" + _name + " ";
 	std::string	rpl;
 
 	rpl += servName + "00" + std::to_string(RPL_WELCOME) + " " + user->getNick()
@@ -56,10 +56,9 @@ void Server::sendGreeting(User *user) {
 		   + " :Message of the day\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
 	rpl.clear();
-	rpl += servName + std::to_string(RPL_MOTD) + " " + user->getNick()
-		   + " :Welcome to my IRC-server :D\n";
-	sendAll(rpl.c_str(), rpl.size(), user->getFd());
-	rpl.clear();
+
+	motdCmd(user, "MOTD", std::vector<std::string>());
+
 	rpl += servName + std::to_string(RPL_ENDOFMOTD) + " " + user->getNick()
 		   + " :End of message of the day\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
@@ -185,6 +184,8 @@ void Server::processMessages(User *user) {
 				pingCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "KILL") {
 				killCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "MOTD") {
+				motdCmd(user, cmd, (*it)->getParams());
 			} else {
 				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}

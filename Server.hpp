@@ -36,6 +36,7 @@ private:
 	std::string							_pass;
 	std::string							_name;
 	Configuration						*_configuration;
+	std::list<std::string>				_motd;
 
 	void	setupStruct();
 	void	createSocket();
@@ -44,6 +45,7 @@ private:
 	int		addToPollSet(int inFd);
 	void	deleteFromPollSet(int i);
 	void	initPollFdSet();
+	void	prepareMotd();
 
 	void	receiveMessage(int connectionNbr);
 	void	processMessages(User *user);
@@ -73,6 +75,7 @@ private:
 	void	operCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	pingCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void	killCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void	motdCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();
