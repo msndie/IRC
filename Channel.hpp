@@ -2,6 +2,7 @@
 #define IRC_CHANNEL_HPP
 
 #include <string>
+#include <set>
 #include "User.hpp"
 
 class User;
@@ -20,14 +21,14 @@ public:
 
 	void					addUser(User *user);
 	void					changeTopic(const std::string &topic);
-	void					removerUser(User *user, const std::string &msg, int fd = -1);
+	void					removerUser(User *user, const std::string &msg, std::set<int> *fds = nullptr);
 	void					changeOwner();
 	User					*getOwner() const;
 	const std::string		&getName() const;
 	const std::string		&getTopic() const;
 	const std::list<User*>	&getUsers() const;
 	bool					isAlive() const;
-	void					notifyAllUsers(const std::string &msg, int fd = -1) const;
+	void					notifyAllUsers(const std::string &msg, std::set<int> *fds = nullptr) const;
 	void					sendTopicInfo(User *user, bool toAll) const;
 	static bool				isNameValid(const std::string &name);
 	void					fillStatsForList(std::string &str) const;

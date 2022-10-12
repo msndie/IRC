@@ -174,7 +174,9 @@ void Server::msgCmd(User *user, const std::string &cmd,
 				}
 				rpl += ":" + user->getInfo() + (isNotice ? " NOTICE " : " PRIVMSG ") + params[0] + " :";
 				concatMsgs(rpl, params, 1);
-				channel->notifyAllUsers(rpl, user->getFd());
+				std::set<int> fds;
+				fds.insert(user->getFd());
+				channel->notifyAllUsers(rpl, &fds);
 			} catch (std::out_of_range &ex) {
 				if (!isNotice) sendError(user, ERR_NOSUCHNICK, params[0]);
 			}
@@ -261,6 +263,8 @@ void Server::killCmd(User *user, const std::string &cmd,
 			std::list<Channel*>::iterator	it;
 			Channel	*channel;
 			std::string	rpl = ":" + user->getInfo() + " KILL " + params[0];
+			std::set<int> fds;
+
 			if (params.size() > 1) {
 				rpl += " :";
 				concatMsgs(rpl, params, 1);
@@ -268,13 +272,14 @@ void Server::killCmd(User *user, const std::string &cmd,
 				rpl += "\n";
 			}
 			sendAll(rpl.c_str(), rpl.size(), client->getFd());
+			fds.insert(client->getFd());
 			rpl.clear();
 			rpl += ":" + client->getInfo() + " QUIT :Has been killed by "
 					+ user->getNick() + "\n";
 			client->setDisconnect(true);
 			it = client->getChannels().begin();
 			while (it != client->getChannels().end()) {
-				(*it)->removerUser(client, rpl, client->getFd());
+				(*it)->removerUser(client, rpl, &fds);
 				if ((*it)->isAlive()) {
 					++it;
 				} else {

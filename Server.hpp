@@ -13,6 +13,7 @@
 #include <poll.h>
 #include <cstdlib>
 #include <map>
+#include <set>
 #include "utils/utils.h"
 #include <arpa/inet.h>
 #include "User.hpp"

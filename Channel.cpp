@@ -15,12 +15,12 @@ void Channel::changeTopic(const std::string &topic) {
 	_topic = topic;
 }
 
-void Channel::removerUser(User *user, const std::string &msg, int fd) {
+void Channel::removerUser(User *user, const std::string &msg, std::set<int> *fds) {
 	std::list<User*>::iterator	it;
 
 	if (_owner == user && !_users.empty()) {
 		changeOwner();
-		notifyAllUsers(msg, fd);
+		notifyAllUsers(msg, fds);
 	} else if (_owner == user && _users.empty()) {
 		_alive = false;
 	} else {
@@ -33,7 +33,7 @@ void Channel::removerUser(User *user, const std::string &msg, int fd) {
 				++it;
 			}
 		}
-		notifyAllUsers(msg, fd);
+		notifyAllUsers(msg, fds);
 	}
 }
 
@@ -63,19 +63,21 @@ bool Channel::isAlive() const {
 	return _alive;
 }
 
-void Channel::notifyAllUsers(const std::string &msg, int fd) const {
+void Channel::notifyAllUsers(const std::string &msg, std::set<int> *fds) const {
 	std::list<User*>::const_iterator	it;
 
 	if (msg.empty()) {
 		return;
 	}
-	if (_owner->getFd() != fd) {
+	if (fds == nullptr || fds->count(_owner->getFd()) == 0) {
 		sendAll(msg.c_str(), msg.size(), _owner->getFd());
+		if (fds != nullptr) fds->insert(_owner->getFd());
 	}
 	it = _users.begin();
 	while (it != _users.end()) {
-		if ((*it)->getFd() != fd) {
+		if (fds == nullptr || fds->count((*it)->getFd()) == 0) {
 			sendAll(msg.c_str(), msg.size(), (*it)->getFd());
+			if (fds != nullptr) fds->insert((*it)->getFd());
 		}
 		++it;
 	}

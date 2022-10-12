@@ -43,6 +43,7 @@ void	Server::quitCmd(User *user, const std::string &cmd,
 	std::list<Channel*>::iterator	it;
 	std::string	repl = ":" + user->getInfo() + " QUIT :";
 	Channel *channel;
+	std::set<int> fds;
 
 	user->setDisconnect(true);
 	if (params.empty()) {
@@ -51,9 +52,10 @@ void	Server::quitCmd(User *user, const std::string &cmd,
 		repl += params.front() + "\n";
 	}
 	sendAll(repl.c_str(), repl.size(), user->getFd());
+	fds.insert(user->getFd());
 	it = user->getChannels().begin();
 	while (it != user->getChannels().end()) {
-		(*it)->removerUser(user, repl);
+		(*it)->removerUser(user, repl, &fds);
 		if ((*it)->isAlive()) {
 			++it;
 		} else {

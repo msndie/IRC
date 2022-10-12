@@ -87,7 +87,7 @@ void Server::partCmd(User *user, const std::string &cmd,
 				sendError(user, ERR_NOTONCHANNEL, params[0]);
 			} else {
 				std::string	rpl = ":" + user->getInfo() + " PART " + params[0] + "\n";
-				sendAll(rpl.c_str(), rpl.size(), user->getFd());
+//				sendAll(rpl.c_str(), rpl.size(), user->getFd());
 				channel->removerUser(user, rpl);
 				user->removeChannel(channel->getName());
 				if (!channel->isAlive()) {
