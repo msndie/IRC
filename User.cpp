@@ -51,6 +51,13 @@ const std::list<Message *> &User::getMessages() const {
 }
 
 void User::clearMessages() {
+	std::list<Message*>::iterator	it;
+
+	it = _messages.begin();
+	while (it != _messages.end()) {
+		delete *it;
+		++it;
+	}
 	_messages.clear();
 }
 

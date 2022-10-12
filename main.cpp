@@ -7,6 +7,7 @@ int main(int argc, char** argv) {
 //    int				port;
     std::string	pass;
 	Server*		server;
+	int			status = 0;
 
     if (argc != 3 || !isPortValid(argv[1]) || isStrBlank(argv[2])) {
         std::cerr << "./ircserv <port (unsigned short)> <password>" << std::endl;
@@ -18,7 +19,9 @@ int main(int argc, char** argv) {
 		server->startServer();
 	} catch (std::exception& ex) {
 		std::cerr << ex.what() << std::endl;
-		return (1);
+		status = 1;
 	}
-    return 0;
+	delete server;
+	getchar();
+    return status;
 }

@@ -1,16 +1,20 @@
 #include <fstream>
 #include "Server.hpp"
 
+int	gStopped = 0;
+
 Server::Server(const char* port, const char* password) : _port(port), _pass(password) {
 	_serverInfo = nullptr;
 	_pollFds = nullptr;
 	_configuration = nullptr;
 	_socketFd = -1;
-	_fdCount = 0;
 	_fdPollSize = 5;
 }
 
-Server::~Server() {}
+Server::~Server() {
+	if (_pollFds) free(_pollFds);
+	delete _configuration;
+}
 
 void	Server::setupStruct() {
 	struct addrinfo	hints;
@@ -92,6 +96,7 @@ void Server::prepareMotd() {
 	std::string		line;
 	std::string		templ;
 
+//	ifs.open("resources/message.motd", std::ifstream::in);
 	ifs.open("../resources/message.motd", std::ifstream::in);
 	if (!ifs.is_open()) {
 		return;
@@ -133,6 +138,11 @@ User *Server::findByNick(const std::string &nick) {
 	return nullptr;
 }
 
+void Server::handleSignals(int signum) {
+	(void)signum;
+	gStopped = 1;
+}
+
 void Server::startServer() {
 	User*	user;
 	struct sockaddr_storage remoteAddr;
@@ -144,6 +154,7 @@ void Server::startServer() {
 	}
 
 	_configuration = new Configuration();
+//	_configuration->parseConfiguration("resources/configuration.yaml");
 	_configuration->parseConfiguration("../resources/configuration.yaml");
 	_name = _configuration->getConfig().at("server.name");
 	setupStruct();
@@ -154,9 +165,15 @@ void Server::startServer() {
 	initPollFdSet();
 	prepareMotd();
 
+	std::signal(SIGINT, handleSignals);
+	std::signal(SIGQUIT, handleSignals);
+	std::signal(SIGTERM, handleSignals);
+	std::signal(SIGSEGV, handleSignals);
+
 	std::cout << "Server waiting for connection" << std::endl;
 
-	while (true) {
+
+	while (!gStopped) {
 		int pollCount = poll(_pollFds, _fdPollSize, -1);
 
 		if (pollCount == -1) {

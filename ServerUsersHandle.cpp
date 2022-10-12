@@ -23,14 +23,10 @@ int Server::addToPollSet(int inFd) {
 	_pollFds[i].fd = inFd;
 	_pollFds[i].events = POLLIN;
 	return i;
-//	_pollFds[_fdCount].fd = inFd;
-//	_pollFds[_fdCount].events = POLLIN;
-//	_fdCount++;
 }
 
 void Server::deleteFromPollSet(int i) {
 	_pollFds[i].fd = -1;
-//	--_fdCount;
 }
 
 bool Server::isNicknameValid(const std::string &nick) {

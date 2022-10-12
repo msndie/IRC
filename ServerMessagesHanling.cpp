@@ -13,16 +13,11 @@ void	Server::receiveMessage(int connectionNbr) {
 	if (bytes <= 0) {
 
 		if (bytes == 0) {
-//			std::cout << "Client with fd " << senderFd
-//					  << " close connection" << std::endl;
 			quitCmd(user, "QUIT", std::vector<std::string>());
 		} else {
 			std::cerr << "Recv error: " << strerror(errno)
 					  << std::endl;
 		}
-//		close(senderFd);
-//		deleteFromPollSet(connectionNbr);
-//		_users.erase(senderFd);
 
 	} else {
 
@@ -39,6 +34,7 @@ void	Server::receiveMessage(int connectionNbr) {
 			std::cout << std::endl;
 			processMessages(user);
 			user->clearMessages();
+
 		}
 
 	}
