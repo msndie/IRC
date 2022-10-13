@@ -18,8 +18,10 @@ int main(int argc, char** argv) {
 	try {
 		server->startServer();
 	} catch (std::exception& ex) {
-		std::cerr << ex.what() << std::endl;
-		status = 1;
+		if (errno != EINTR) {
+			std::cerr << ex.what() << std::endl;
+			status = 1;
+		}
 	}
 	delete server;
 	getchar();

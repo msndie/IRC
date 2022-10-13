@@ -139,8 +139,63 @@ User *Server::findByNick(const std::string &nick) {
 }
 
 void Server::handleSignals(int signum) {
-	(void)signum;
+	if (signum == SIGSEGV) {
+		std::cerr << "Runtime error" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 	gStopped = 1;
+}
+
+void Server::configureServer() {
+	_configuration = new Configuration();
+//	_configuration->parseConfiguration("resources/configuration.yaml");
+	_configuration->parseConfiguration("../resources/configuration.yaml");
+	std::map<std::string, std::string>::const_iterator connections;
+	std::map<std::string, std::string>::const_iterator timeOut;
+	int tmp;
+
+	_name = _configuration->getConfig().at("server.name");
+	connections = _configuration->getConfig().find("server.connections");
+	timeOut = _configuration->getConfig().find("server.registration.timeout");
+	if (connections == _configuration->getConfig().end()
+		|| (tmp = std::atoi(connections->second.c_str())) < 5 || tmp > 100) {
+		std::cout << "Using default max number of connections" << std::endl;
+		_maxNbrOfConnections = 20;
+	} else {
+		std::cout << "Max number of connections is " << tmp << std::endl;
+		_maxNbrOfConnections = tmp;
+	}
+	if (timeOut == _configuration->getConfig().end()
+		|| (tmp = std::atoi(timeOut->second.c_str())) < 10 || tmp > 180) {
+		std::cout << "Using default registration time out" << std::endl;
+		_registrationTimeOut = 60;
+	} else {
+		std::cout << "Registration time out is " << tmp << std::endl;
+		_registrationTimeOut = tmp;
+	}
+}
+
+int Server::findMinTimeOut(int *connectionNbr) {
+	std::time_t	now = std::time(nullptr);
+	std::map<int, User*>::iterator	it;
+	long	timeOut = _registrationTimeOut + 1;
+	long	diff;
+
+	it = _unregisteredUsers.begin();
+	while (it != _unregisteredUsers.end()) {
+		diff = now - it->second->getTimeOfConnection();
+		if (_registrationTimeOut - diff < timeOut) {
+			*connectionNbr = it->second->getConnectionNbr();
+			timeOut = _registrationTimeOut - diff;
+		}
+		++it;
+	}
+	if (timeOut < 0) timeOut = 0;
+	if (timeOut == _registrationTimeOut + 1) {
+		*connectionNbr = -1;
+		timeOut = -1;
+	}
+	return timeOut;
 }
 
 void Server::startServer() {
@@ -148,15 +203,10 @@ void Server::startServer() {
 	struct sockaddr_storage remoteAddr;
 	socklen_t addrLen;
 	int inFd;
+	int connectionNbr;
+	int userToCheck;
 
-	if (!_err.empty()) {
-		_err.clear();
-	}
-
-	_configuration = new Configuration();
-//	_configuration->parseConfiguration("resources/configuration.yaml");
-	_configuration->parseConfiguration("../resources/configuration.yaml");
-	_name = _configuration->getConfig().at("server.name");
+	configureServer();
 	setupStruct();
 	createSocket();
 	bindSocketToPort();
@@ -166,15 +216,13 @@ void Server::startServer() {
 	prepareMotd();
 
 	std::signal(SIGINT, handleSignals);
-	std::signal(SIGQUIT, handleSignals);
-	std::signal(SIGTERM, handleSignals);
 	std::signal(SIGSEGV, handleSignals);
 
 	std::cout << "Server waiting for connection" << std::endl;
 
-
 	while (!gStopped) {
-		int pollCount = poll(_pollFds, _fdPollSize, -1);
+		int timeOut = findMinTimeOut(&userToCheck);
+		int pollCount = poll(_pollFds, _fdPollSize, timeOut);
 
 		if (pollCount == -1) {
 			_err.append("An error on poll: ");
@@ -191,8 +239,17 @@ void Server::startServer() {
 					if (inFd == -1) {
 						std::cerr << "Accept error: " << strerror(errno) << std::endl;
 					} else {
-						user = new User(inFd, addToPollSet(inFd), inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
-						_users.insert(std::make_pair(inFd, user));
+						connectionNbr = addToPollSet(inFd);
+						if (connectionNbr != -1) {
+							user = new User(inFd, connectionNbr, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
+							_users.insert(std::make_pair(inFd, user));
+							_unregisteredUsers.insert(std::make_pair(inFd, user));
+						} else {
+							std::string rpl = ":" + _name
+									+ " NOTICE * :The maximum number of connections has been reached\n";
+							sendAll(rpl.c_str(), rpl.size(), inFd);
+							close(inFd);
+						}
 					}
 				} else {
 					receiveMessage(i);
@@ -200,7 +257,24 @@ void Server::startServer() {
 				}
 			}
 		}
+		if (userToCheck != -1) {
+			std::time_t	now = std::time(nullptr);
+			std::map<int, User*>::iterator it;
+			it = _unregisteredUsers.find(_pollFds[userToCheck].fd);
+			if (it != _unregisteredUsers.end()
+				&& (now - it->second->getTimeOfConnection()) >= _registrationTimeOut) {
+					std::string rpl = ":" + _name + " NOTICE * :Registration time out\n";
+					sendAll(rpl.c_str(), rpl.size(), it->second->getFd());
+					deleteFromPollSet(it->second->getConnectionNbr());
+					close(it->first);
+					delete it->second;
+					_unregisteredUsers.erase(it->first);
+					_users.erase(it->first);
+			}
+		}
 	}
+	std::signal(SIGINT, SIG_DFL);
+	std::signal(SIGSEGV, SIG_DFL);
 }
 
 const char *Server::LaunchFailed::what() const throw() {

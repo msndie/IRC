@@ -7,8 +7,12 @@ int Server::addToPollSet(int inFd) {
 		if (_pollFds[i].fd == -1) break;
 		++i;
 	}
+	if (i == _maxNbrOfConnections) return (-1);
 	if (i == _fdPollSize) {
 		_fdPollSize *= 2;
+		if (_fdPollSize > _maxNbrOfConnections) {
+			_fdPollSize = _maxNbrOfConnections;
+		}
 		_pollFds = static_cast<pollfd *>(reallocf(_pollFds,
 												  (sizeof(struct pollfd) *
 												   _fdPollSize)));
@@ -64,6 +68,7 @@ bool	Server::isExistsByNick(const std::string &nick, int fd) {
 void Server::checkUserInfo(User *user) {
 	if (!user->getNick().empty() && !user->getUsername().empty()
 		&& !user->getFullName().empty() && user->getPassword() == this->_pass) {
+		_unregisteredUsers.erase(user->getFd());
 		user->setRegistered(true);
 		sendGreeting(user);
 		return;
@@ -91,6 +96,7 @@ void	Server::disconnectUsers() {
 			close(it->first);
 			delete it->second;
 			it = _users.erase(it);
+			_unregisteredUsers.erase(it->first);
 		} else {
 			++it;
 		}

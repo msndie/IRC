@@ -13,7 +13,11 @@ void	Server::passCmd(User *user, const std::string &cmd,
 
 void	Server::nickCmd(User *user, const std::string &cmd,
 				const std::vector<std::string> &params) {
-	if (params.empty()) {
+	if (!user->isRegistered() && user->getPassword().empty()) {
+		std::string rpl = ":" + _name + " NOTICE * :Password required. Closing link\n";
+		sendAll(rpl.c_str(), rpl.size(), user->getFd());
+		user->setDisconnect(true);
+	} else if (params.empty()) {
 		sendError(user, ERR_NONICKNAMEGIVEN, cmd);
 	} else if (!isNicknameValid(params.front())) {
 		sendError(user, ERR_ERRONEUSNICKNAME, params.front());
@@ -28,7 +32,11 @@ void	Server::nickCmd(User *user, const std::string &cmd,
 
 void	Server::userCmd(User *user, const std::string &cmd,
 						const std::vector<std::string> &params) {
-	if (user->isRegistered()) {
+	if (!user->isRegistered() && user->getPassword().empty()) {
+		std::string rpl = ":" + _name + " NOTICE * :Password required. Closing link\n";
+		sendAll(rpl.c_str(), rpl.size(), user->getFd());
+		user->setDisconnect(true);
+	} else if (user->isRegistered()) {
 		sendError(user, ERR_ALREADYREGISTRED);
 	} else if (params.size() < 4) {
 		sendError(user, ERR_NEEDMOREPARAMS, cmd);

@@ -18,6 +18,9 @@ private:
 	std::string			_password;
 	std::string			_host;
 	std::string			_remains;
+	std::time_t			_timeOfConnection;
+
+private:
 	int					_fd;
 	int					_connectionNbr;
 	bool				_registered;
@@ -81,9 +84,11 @@ public:
 
 	bool						isOnChannel(Channel* channel);
 
-	bool isOperator() const;
+	bool						isOperator() const;
 
-	void setOperator(bool oper);
+	void						setOperator(bool oper);
+
+	time_t						getTimeOfConnection() const;
 };
 
 #endif /*IRC_USER_HPP*/

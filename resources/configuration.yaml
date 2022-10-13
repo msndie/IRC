@@ -2,3 +2,6 @@ server:
   name: IRC-Server
   operators:
     sclam: 123QWEasdZxC
+  registration:
+    timeout: 20
+  connections: 5

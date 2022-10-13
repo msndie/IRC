@@ -23,6 +23,7 @@ void Channel::removerUser(User *user, const std::string &msg, std::set<int> *fds
 		notifyAllUsers(msg, fds);
 	} else if (_owner == user && _users.empty()) {
 		_alive = false;
+		notifyAllUsers(msg, fds);
 	} else {
 		it = _users.begin();
 		while (it != _users.end()) {

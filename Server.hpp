@@ -27,6 +27,7 @@ class Server {
 private:
 	std::map< std::string, Channel* >	_channels;
 	std::map< int, User* >				_users;
+	std::map< int, User* >				_unregisteredUsers;
 	struct addrinfo						*_serverInfo;
 	const char							*_port;
 	int 								_socketFd;
@@ -37,6 +38,8 @@ private:
 	std::string							_name;
 	Configuration						*_configuration;
 	std::list<std::string>				_motd;
+	int									_registrationTimeOut;
+	int									_maxNbrOfConnections;
 
 	void		setupStruct();
 	void		createSocket();
@@ -46,6 +49,7 @@ private:
 	void		deleteFromPollSet(int i);
 	void		initPollFdSet();
 	void		prepareMotd();
+	void		configureServer();
 
 	static void	handleSignals(int signum);
 
@@ -56,6 +60,7 @@ private:
 	void		sendError(User *user, int errorCode, const std::string& arg="");
 	void		disconnectUsers();
 	void		deleteChannel(Channel *channel);
+	int			findMinTimeOut(int *connectionNbr);
 
 	bool		isExistsByNick(const std::string &nick, int fd=-1);
 	bool		isNicknameValid(const std::string &nick);

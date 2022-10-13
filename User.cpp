@@ -3,6 +3,7 @@
 
 User::User(int fd, int connectionNbr,
 		   const std::string &host) : _fd(fd), _connectionNbr(connectionNbr), _host(host) {
+	_timeOfConnection = std::time(nullptr);
 	_disconnect = false;
 	_registered = false;
 	_operator = false;
@@ -156,4 +157,8 @@ bool User::isOperator() const {
 
 void User::setOperator(bool oper) {
 	_operator = oper;
+}
+
+time_t User::getTimeOfConnection() const {
+	return _timeOfConnection;
 }
