@@ -52,10 +52,6 @@ const std::string &Channel::getName() const {
 	return _name;
 }
 
-const std::string &Channel::getTopic() const {
-	return _topic;
-}
-
 const std::list<User *> &Channel::getUsers() const {
 	return _users;
 }

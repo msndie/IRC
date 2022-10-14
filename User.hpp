@@ -28,19 +28,17 @@ private:
 	bool				_operator;
 
 public:
+	~User();
+
 	User(int fd, int connectionNbr, const std::string& host);
 
 	friend bool operator==(const User &lhs, const User &rhs);
-
-	const std::string			&getHost() const;
 
 	int							getFd() const;
 
 	void						setRemains(const char* str);
 
 	const std::string			&getRemains() const;
-
-	void 						freeRemains();
 
 	void						parseMessages();
 

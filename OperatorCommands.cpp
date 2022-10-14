@@ -28,7 +28,7 @@ void Server::killCmd(User *user, const std::string &cmd,
 					 const std::vector<std::string> &params) {
 	if (!user->isOperator()) {
 		sendError(user, ERR_NOPRIVILEGES);
-	} else if (params.size() < 1) {
+	} else if (params.empty()) {
 		sendError(user, ERR_NEEDMOREPARAMS, cmd);
 	} else {
 		if (user->getNick() == params[0]) return;

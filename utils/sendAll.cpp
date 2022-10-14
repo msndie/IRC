@@ -1,10 +1,10 @@
 #include <iostream>
 #include <sys/socket.h>
 
-void sendAll(const char *msg, ssize_t nbrOfBytes, int receiverFd) {
-	ssize_t	sent;
-	ssize_t	left;
-	ssize_t	n;
+void sendAll(const char *msg, unsigned long nbrOfBytes, int receiverFd) {
+	unsigned long	sent;
+	unsigned long	left;
+	unsigned long	n;
 
 	sent = 0;
 	left = nbrOfBytes;

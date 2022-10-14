@@ -182,6 +182,8 @@ void Server::processMessages(User *user) {
 				killCmd(user, cmd, (*it)->getParams());
 			} else if (cmd == "MOTD") {
 				motdCmd(user, cmd, (*it)->getParams());
+			} else if (cmd == "DIE") {
+				dieCmd(user, cmd, (*it)->getParams());
 			} else {
 				sendError(user, ERR_UNKNOWNCOMMAND, cmd);
 			}

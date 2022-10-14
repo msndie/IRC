@@ -25,7 +25,6 @@ public:
 	void					changeOwner();
 	User					*getOwner() const;
 	const std::string		&getName() const;
-	const std::string		&getTopic() const;
 	const std::list<User*>	&getUsers() const;
 	bool					isAlive() const;
 	void					notifyAllUsers(const std::string &msg, std::set<int> *fds = nullptr) const;

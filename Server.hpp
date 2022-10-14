@@ -50,6 +50,8 @@ private:
 	void		initPollFdSet();
 	void		prepareMotd();
 	void		configureServer();
+	void		killServer();
+	void		mainLoop();
 
 	static void	handleSignals(int signum);
 
@@ -58,10 +60,11 @@ private:
 	void		sendGreeting(User *user);
 	void		checkUserInfo(User *user);
 	void		sendError(User *user, int errorCode, const std::string& arg="");
+
+	void		checkRegistrationTimeOut(int nbrOfConnection);
 	void		disconnectUsers();
 	void		deleteChannel(Channel *channel);
 	int			findMinTimeOut(int *connectionNbr);
-
 	bool		isExistsByNick(const std::string &nick, int fd=-1);
 	bool		isNicknameValid(const std::string &nick);
 	void		changeNick(User *user, const std::string& nick);
@@ -83,6 +86,7 @@ private:
 	void		pingCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void		killCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 	void		motdCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
+	void		dieCmd(User *user, const std::string &cmd, const std::vector<std::string> &params);
 public:
 	explicit Server(const char* port, const char* password);
 	~Server();

@@ -9,8 +9,16 @@ User::User(int fd, int connectionNbr,
 	_operator = false;
 }
 
-const std::string &User::getHost() const {
-	return _host;
+User::~User() {
+	if (!_messages.empty()) {
+		std::list<Message*>::iterator it;
+
+		it = _messages.begin();
+		while (it != _messages.end()) {
+			delete *it;
+			++it;
+		}
+	}
 }
 
 int User::getFd() const {
@@ -25,10 +33,6 @@ const std::string &User::getRemains() const {
 	return _remains;
 }
 
-void User::freeRemains() {
-	_remains.clear();
-}
-
 bool User::isRegistered() const {
 	return _registered;
 }
@@ -38,7 +42,6 @@ void User::setRegistered(bool registered) {
 }
 
 void User::parseMessages() {
-	std::list<Message*>::const_iterator	it;
 	std::string::size_type				pos;
 
 	while ((pos = _remains.find("\r\n")) != std::string::npos)
