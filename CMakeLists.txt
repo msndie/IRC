@@ -3,4 +3,4 @@ project(irc)
 
 set(CMAKE_CXX_STANDARD 98)
 
-add_executable(irc main.cpp Server.cpp Server.hpp User.cpp User.hpp Message.cpp Message.hpp Responses.hpp utils/utils.cpp utils/utils.h ServerMessagesHanling.cpp utils/sendAll.cpp ServerUsersHandle.cpp Channel.cpp Channel.hpp UserCommands.cpp ChannelCommands.cpp Configuration.cpp Configuration.hpp OtherCommands.cpp OperatorCommands.cpp ServerUtils.cpp ServerInitUtils.cpp)
+add_executable(irc srcs/main.cpp srcs/Server.cpp includes/Server.hpp srcs/User.cpp includes/User.hpp srcs/Message.cpp includes/Message.hpp includes/Responses.hpp srcs/utils/utils.cpp includes/utils.h srcs/ServerMessagesHandling.cpp srcs/utils/sendAll.cpp srcs/ServerUsersHandle.cpp srcs/Channel.cpp includes/Channel.hpp srcs/UserCommands.cpp srcs/ChannelCommands.cpp srcs/Configuration.cpp includes/Configuration.hpp srcs/OtherCommands.cpp srcs/OperatorCommands.cpp srcs/ServerUtils.cpp srcs/ServerInitUtils.cpp)

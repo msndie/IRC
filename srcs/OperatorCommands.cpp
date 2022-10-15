@@ -1,4 +1,6 @@
-#include "Server.hpp"
+
+
+#include "../includes/Server.hpp"
 
 void Server::operCmd(User *user, const std::string &cmd,
 					 const std::vector<std::string> &params) {

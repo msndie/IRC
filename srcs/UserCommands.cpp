@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 void	Server::passCmd(User *user, const std::string &cmd,
 						const std::vector<std::string> &params) {
@@ -48,6 +48,7 @@ void	Server::userCmd(User *user, const std::string &cmd,
 
 void	Server::quitCmd(User *user, const std::string &cmd,
 						const std::vector<std::string> &params) {
+	(void)cmd;
 	std::list<Channel*>::iterator	it;
 	std::string	repl = ":" + user->getInfo() + " QUIT :";
 	Channel *channel;

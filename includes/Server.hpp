@@ -16,7 +16,7 @@
 #include <set>
 #include <arpa/inet.h>
 #include "csignal"
-#include "utils/utils.h"
+#include "utils.h"
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Configuration.hpp"
@@ -93,20 +93,14 @@ public:
 
 	void	startServer();
 
-	class LaunchFailed : public std::exception {
-		private:
-			const char*	msg;
+	class LaunchFailed : public std::runtime_error {
 		public:
-			explicit LaunchFailed(const char* msg) : msg(msg) {}
-			virtual const char* what() const throw();
+			explicit LaunchFailed(const char* msg);
 	};
 
-	class RuntimeServerError : public std::exception {
-	private:
-		const char*	msg;
-	public:
-		explicit RuntimeServerError(const char* msg) : msg(msg) {}
-		virtual const char* what() const throw();
+	class RuntimeServerError : public std::runtime_error {
+		public:
+			explicit RuntimeServerError(const char* msg);
 	};
 };
 

@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 void	Server::receiveMessage(int connectionNbr) {
 	ssize_t	bytes;

@@ -1,4 +1,6 @@
-#include "Server.hpp"
+
+
+#include "../includes/Server.hpp"
 
 void Server::deleteChannel(Channel *channel) {
 	_channels.erase(channel->getName());

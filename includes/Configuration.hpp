@@ -3,6 +3,11 @@
 
 #include <map>
 #include <string>
+#include <fstream>
+#include <sstream>
+#include <list>
+#include <vector>
+#include "../includes/utils.h"
 
 class Configuration {
 private:
@@ -17,12 +22,9 @@ public:
 	void	parseConfiguration(const std::string &path);
 	const std::map<std::string, std::string>	&getConfig() const;
 
-	class ConfigurationFileError : public std::exception {
-	private:
-		const char*	msg;
-	public:
-		explicit ConfigurationFileError(const char* msg) : msg(msg) {}
-		virtual const char* what() const throw();
+	class ConfigurationFileError : public std::runtime_error {
+		public:
+			explicit ConfigurationFileError(const char* msg);
 	};
 };
 

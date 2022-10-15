@@ -1,8 +1,10 @@
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 void Server::motdCmd(User *user, const std::string &cmd,
 					 const std::vector<std::string> &params) {
 	std::string	rpl;
+	(void)cmd;
+	(void)params;
 
 	if (_motd.empty()) {
 		rpl += ":" + _name + " " + std::to_string(RPL_MOTD) + " " + user->getNick()
@@ -26,6 +28,7 @@ void Server::motdCmd(User *user, const std::string &cmd,
 
 void Server::pingCmd(User *user, const std::string &cmd,
 					 const std::vector<std::string> &params) {
+	(void)cmd;
 	if (params.empty()) {
 		sendError(user, ERR_NOORIGIN);
 	} else {
@@ -36,6 +39,7 @@ void Server::pingCmd(User *user, const std::string &cmd,
 
 void Server::msgCmd(User *user, const std::string &cmd,
 					const std::vector<std::string> &params, bool isNotice) {
+	(void)cmd;
 	if (params.empty()) {
 		if (!isNotice) sendError(user, ERR_NORECIPIENT);
 	} else if (params.size() == 1) {

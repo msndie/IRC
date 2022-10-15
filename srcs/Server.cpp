@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 int	gStopped = 0;
 
@@ -46,6 +46,8 @@ void Server::handleSignals(int signum) {
 
 void Server::dieCmd(User *user, const std::string &cmd,
 					const std::vector<std::string> &params) {
+	(void)cmd;
+	(void)params;
 	if (!user->isOperator()) {
 		sendError(user, ERR_NOPRIVILEGES);
 	} else {
@@ -126,10 +128,6 @@ void Server::startServer() {
 	std::signal(SIGSEGV, SIG_DFL);
 }
 
-const char *Server::LaunchFailed::what() const throw() {
-	return msg;
-}
+Server::LaunchFailed::LaunchFailed(const char *msg) : std::runtime_error(msg) {}
 
-const char *Server::RuntimeServerError::what() const throw() {
-	return msg;
-}
+Server::RuntimeServerError::RuntimeServerError(const char *msg) : std::runtime_error(msg) {}

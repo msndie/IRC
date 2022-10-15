@@ -4,7 +4,7 @@
 void sendAll(const char *msg, unsigned long nbrOfBytes, int receiverFd) {
 	unsigned long	sent;
 	unsigned long	left;
-	unsigned long	n;
+	long			n;
 
 	sent = 0;
 	left = nbrOfBytes;

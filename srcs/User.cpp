@@ -1,8 +1,8 @@
-#include "User.hpp"
-#include "utils/utils.h"
+#include "../includes/utils.h"
+#include "../includes/User.hpp"
 
 User::User(int fd, int connectionNbr,
-		   const std::string &host) : _fd(fd), _connectionNbr(connectionNbr), _host(host) {
+		   const std::string &host) : _host(host), _fd(fd), _connectionNbr(connectionNbr) {
 	_timeOfConnection = std::time(nullptr);
 	_disconnect = false;
 	_registered = false;

@@ -1,4 +1,4 @@
-#include "Server.hpp"
+#include "../includes/Server.hpp"
 
 static void sendChannelInfo(User *user, Channel *channel) {
 	std::string	rpl;
@@ -139,6 +139,7 @@ void Server::kickCmd(User *user, const std::string &cmd,
 
 void Server::listCmd(User *user, const std::string &cmd,
 					 const std::vector<std::string> &params) {
+	(void)cmd;
 	std::map<std::string, Channel*>::const_iterator	it;
 	std::string templ = ":IRC-server " + std::to_string(RPL_LIST) + " "
 			+ user->getNick() + " ";
@@ -168,6 +169,7 @@ void Server::listCmd(User *user, const std::string &cmd,
 
 void Server::namesCmd(User *user, const std::string &cmd,
 					  const std::vector<std::string> &params) {
+	(void)cmd;
 	std::map<std::string, Channel*>::const_iterator	it;
 	std::map<int, User*>::const_iterator itForUsers;
 	std::string templ = ":IRC-server " + std::to_string(RPL_NAMREPLY) + " "

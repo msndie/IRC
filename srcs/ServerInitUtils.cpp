@@ -1,5 +1,5 @@
-#include "Server.hpp"
 #include <fstream>
+#include "../includes/Server.hpp"
 
 void	Server::setupStruct() {
 	struct addrinfo	hints = {};

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
-#include "Server.hpp"
-#include "utils/utils.h"
+#include "../includes/Server.hpp"
 
 int main(int argc, char** argv) {
 //    int				port;
@@ -24,6 +23,6 @@ int main(int argc, char** argv) {
 		}
 	}
 	delete server;
-	getchar();
+//	getchar();
     return status;
 }

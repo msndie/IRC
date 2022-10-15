@@ -1,9 +1,4 @@
-#include <fstream>
-#include <sstream>
-#include <list>
-#include <vector>
-#include "Configuration.hpp"
-#include "utils/utils.h"
+#include "../includes/Configuration.hpp"
 
 Configuration::Configuration() {}
 
@@ -67,6 +62,4 @@ const std::map<std::string, std::string> &Configuration::getConfig() const {
 	return _config;
 }
 
-const char *Configuration::ConfigurationFileError::what() const throw() {
-	return msg;
-}
+Configuration::ConfigurationFileError::ConfigurationFileError(const char *msg) : std::runtime_error(msg) {}

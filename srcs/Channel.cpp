@@ -1,5 +1,5 @@
-#include "Channel.hpp"
-#include "utils/utils.h"
+#include "../includes/Channel.hpp"
+#include "../includes/utils.h"
 
 Channel::~Channel() {}
 
