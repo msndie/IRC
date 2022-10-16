@@ -1,0 +1,8 @@
+bot:
+  nick: Joker
+  username: Joker
+  realname: Jocker Bot
+server:
+  port: 1337
+  pass: pass
+  ip: 127.0.0.1

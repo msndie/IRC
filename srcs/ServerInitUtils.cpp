@@ -11,10 +11,9 @@ void	Server::setupStruct() {
 	hints.ai_flags = AI_PASSIVE;
 	status = getaddrinfo(nullptr, _port, &hints, &_serverInfo);
 	if (status != 0) {
-		std::string err;
-		err.append("getaddrinfo error: ");
-		err.append(gai_strerror(status));
-		throw LaunchFailed(err.c_str());
+		_err.append("getaddrinfo error: ");
+		_err.append(gai_strerror(status));
+		throw LaunchFailed(_err.c_str());
 	}
 }
 
