@@ -1,6 +1,6 @@
 #include <iostream>
 #include "../includes/utils.h"
-#include "Message.hpp"
+#include "../includes/Message.hpp"
 
 Message::Message(std::vector<std::string> params, std::string cmd,
 				 std::string prefix) : _params(params), _cmd(cmd), _prefix(prefix) {}

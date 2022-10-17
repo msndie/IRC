@@ -13,8 +13,7 @@ private:
 	std::string					_cmd;
 	std::string					_prefix;
 
-	Message(std::vector<std::string> params, std::string cmd,
-			std::string prefix);
+	Message(std::vector<std::string> params, std::string cmd, std::string prefix);
 public:
 	~Message();
 	static void						parseMessages(const std::string& msg, std::list<Message*>& list);
