@@ -24,14 +24,6 @@ void	Server::receiveMessage(int connectionNbr) {
 		user->setRemains(buf);
 		if (endsWith(user->getRemains(), "\r\n") || endsWith(user->getRemains(), "\n")) {
 			user->parseMessages();
-			const std::list<Message *> &list = user->getMessages();
-			std::list<Message *>::const_iterator it;
-			it = list.begin();
-			while (it != list.end()) {
-				std::cout << *(*it) << std::endl;
-				++it;
-			}
-			std::cout << std::endl;
 			processMessages(user);
 			user->clearMessages();
 
@@ -62,7 +54,7 @@ void Server::sendGreeting(User *user) {
 }
 
 void Server::sendError(User *user, int errorCode, const std::string& arg) {
-	std::string	rpl = ":IRC-server ";
+	std::string	rpl = ":" + _name + " ";
 	std::string	userName;
 
 	if (user->getNick().empty() && user->getUsername().empty()) {

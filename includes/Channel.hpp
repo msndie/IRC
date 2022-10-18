@@ -13,10 +13,11 @@ private:
 	std::string			_name;
 	std::string			_topic;
 	std::list<User*>	_users;
+	std::string&		_serverName;
 	bool				_alive;
 
 public:
-	explicit Channel(User *owner, const std::string &name);
+	explicit Channel(User *owner, const std::string &name, std::string &serverName);
 	~Channel();
 
 	void					addUser(User *user);
@@ -32,6 +33,7 @@ public:
 	static bool				isNameValid(const std::string &name);
 	void					fillStatsForList(std::string &str) const;
 	void					fillNicksForNames(std::string &str) const;
+	std::string				&getServerName() const;
 };
 
 #endif /*IRC_CHANNEL_HPP*/

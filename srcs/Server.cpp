@@ -127,8 +127,6 @@ void Server::startServer() {
 	std::signal(SIGINT, handleSignals);
 	std::signal(SIGSEGV, handleSignals);
 
-	std::cout << "Server waiting for connection" << std::endl;
-
 	mainLoop();
 	killServer();
 	std::signal(SIGINT, SIG_DFL);

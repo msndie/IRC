@@ -3,7 +3,8 @@
 
 Channel::~Channel() {}
 
-Channel::Channel(User *owner, const std::string &name) : _owner(owner), _name(name) {
+Channel::Channel(User *owner, const std::string &name,
+				 std::string &serverName) : _owner(owner), _name(name), _serverName(serverName) {
 	_alive = true;
 }
 
@@ -41,7 +42,7 @@ void Channel::removerUser(User *user, const std::string &msg, std::set<int> *fds
 void Channel::changeOwner() {
 	_owner = _users.front();
 	_users.pop_front();
-	notifyAllUsers(":IRC-server MODE " + _name + " +o " + _owner->getNick() + "\n");
+	notifyAllUsers(":" + _serverName + " MODE " + _name + " +o " + _owner->getNick() + "\n");
 }
 
 User *Channel::getOwner() const {
@@ -101,11 +102,11 @@ void Channel::sendTopicInfo(User *user, bool toAll) const {
 	std::string	rpl;
 
 	if (_topic.empty()) {
-		rpl += ":IRC-server " + std::to_string(RPL_NOTOPIC) + " "
+		rpl += ":" + _serverName + " " + std::to_string(RPL_NOTOPIC) + " "
 			   + user->getNick() + " " + _name + " :No topic is set\n";
 		sendAll(rpl.c_str(), rpl.size(), user->getFd());
 	} else {
-		rpl += ":IRC-server " + std::to_string(RPL_TOPIC) + " "
+		rpl += ":" + _serverName + " " + std::to_string(RPL_TOPIC) + " "
 			   + user->getNick() + " " + _name + " :"
 			   + _topic + "\n";
 		if (toAll) {
@@ -138,4 +139,8 @@ void Channel::fillNicksForNames(std::string &str) const {
 		}
 	}
 	str += "\n";
+}
+
+std::string &Channel::getServerName() const {
+	return _serverName;
 }

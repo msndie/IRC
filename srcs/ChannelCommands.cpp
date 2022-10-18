@@ -5,7 +5,8 @@ static void sendChannelInfo(User *user, Channel *channel) {
 	std::list<User *>::const_iterator it;
 
 	channel->sendTopicInfo(user, false);
-	rpl += ":IRC-server " + std::to_string(RPL_NAMREPLY) + " " + user->getNick() + " = " + channel->getName() + " :";
+	rpl += ":" + channel->getServerName() + " " + std::to_string(RPL_NAMREPLY)
+			+ " " + user->getNick() + " = " + channel->getName() + " :";
 	rpl += "@" + channel->getOwner()->getNick();
 	it = channel->getUsers().begin();
 	while (it != channel->getUsers().end()) {
@@ -15,7 +16,7 @@ static void sendChannelInfo(User *user, Channel *channel) {
 	rpl += "\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
 	rpl.clear();
-	rpl += ":IRC-server " + std::to_string(RPL_ENDOFNAMES) + " "
+	rpl += ":" + channel->getServerName() + " " + std::to_string(RPL_ENDOFNAMES) + " "
 			+ user->getNick() + " " + channel->getName() + " :End of /NAMES list\n";
 	sendAll(rpl.c_str(), rpl.size(), user->getFd());
 }
@@ -37,7 +38,7 @@ void	Server::joinCmd(User *user, const std::string &cmd, const std::vector<std::
 			}
 			channel->addUser(user);
 		} catch (std::out_of_range &ex) {
-			channel = new Channel(user, name);
+			channel = new Channel(user, name, _name);
 			_channels.insert(std::make_pair(name, channel));
 		}
 		user->addChannel(channel);
@@ -140,7 +141,7 @@ void Server::listCmd(User *user, const std::string &cmd,
 					 const std::vector<std::string> &params) {
 	(void)cmd;
 	std::map<std::string, Channel*>::const_iterator	it;
-	std::string templ = ":IRC-server " + std::to_string(RPL_LIST) + " "
+	std::string templ = ":" + _name + " " + std::to_string(RPL_LIST) + " "
 			+ user->getNick() + " ";
 
 	if (params.empty()) {
@@ -161,7 +162,7 @@ void Server::listCmd(User *user, const std::string &cmd,
 		}
 	}
 	templ.clear();
-	templ += ":IRC-server " + std::to_string(RPL_LISTEND) + " "
+	templ += ":" + _name + " " + std::to_string(RPL_LISTEND) + " "
 			+ user->getNick() + " :End of /LIST\n";
 	sendAll(templ.c_str(), templ.size(), user->getFd());
 }
@@ -171,7 +172,7 @@ void Server::namesCmd(User *user, const std::string &cmd,
 	(void)cmd;
 	std::map<std::string, Channel*>::const_iterator	it;
 	std::map<int, User*>::const_iterator itForUsers;
-	std::string templ = ":IRC-server " + std::to_string(RPL_NAMREPLY) + " "
+	std::string templ = ":" + _name + " " + std::to_string(RPL_NAMREPLY) + " "
 						+ user->getNick() + " = ";
 
 	if (params.empty()) {
@@ -183,7 +184,7 @@ void Server::namesCmd(User *user, const std::string &cmd,
 			++it;
 		}
 		templ.clear();
-		templ += ":IRC-server " + std::to_string(RPL_NAMREPLY) + " "
+		templ += ":" + _name + " " + std::to_string(RPL_NAMREPLY) + " "
 				+ user->getNick() + " * * :";
 		itForUsers = _users.begin();
 		while (itForUsers != _users.end()) {
@@ -195,7 +196,7 @@ void Server::namesCmd(User *user, const std::string &cmd,
 		templ += "\n";
 		sendAll(templ.c_str(), templ.size(), user->getFd());
 		templ.clear();
-		templ += ":IRC-server " + std::to_string(RPL_ENDOFNAMES) + " "
+		templ += ":" + _name + " " + std::to_string(RPL_ENDOFNAMES) + " "
 				+ user->getNick() + " * :End of /NAMES list.\n";
 		sendAll(templ.c_str(), templ.size(), user->getFd());
 	} else {
@@ -204,7 +205,7 @@ void Server::namesCmd(User *user, const std::string &cmd,
 			sendAll(templ.c_str(), templ.size(), user->getFd());
 		} catch (std::out_of_range &ex) {}
 		templ.clear();
-		templ += ":IRC-server " + std::to_string(RPL_ENDOFNAMES) + " "
+		templ += ":" + _name + " " + std::to_string(RPL_ENDOFNAMES) + " "
 				 + user->getNick() + " " + params[0] + " :End of /NAMES list.\n";
 		sendAll(templ.c_str(), templ.size(), user->getFd());
 	}
