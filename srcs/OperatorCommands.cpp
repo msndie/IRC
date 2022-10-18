@@ -1,5 +1,3 @@
-
-
 #include "../includes/Server.hpp"
 
 void Server::operCmd(User *user, const std::string &cmd,

@@ -4,10 +4,17 @@
 #include <cstdlib>
 #include <iostream>
 #include <sys/poll.h>
+#include <csignal>
 #include "../includes/Bot.hpp"
 #include "../includes/utils.h"
 
-Bot::Bot(const char *path) : _config(nullptr), _socket(-1), _active(false), _path(path) {}
+int	gStopped = 0;
+
+Bot::Bot(const char *config, const char *puns) : _config(nullptr), _socket(-1), _counter(0), _active(
+		false) {
+	_punsPath = puns;
+	_configPath = config;
+}
 
 Bot::~Bot() {
 	if (!_messages.empty()) {
@@ -21,6 +28,23 @@ Bot::~Bot() {
 	}
 	delete _config;
 	close(_socket);
+}
+
+void Bot::loadPuns() {
+	std::ifstream	ifs;
+	std::string		line;
+
+	ifs.open(_punsPath, std::ifstream::in);
+	if (!ifs.is_open()) {
+		throw LaunchFailed("Can't open Puns file");
+	}
+	while (std::getline(ifs, line)) {
+		if (!line.empty() && !isStrBlank(line.c_str()))
+			_puns.push_back(line);
+	}
+	if (_puns.empty()) {
+		throw LaunchFailed("Puns content error");
+	}
 }
 
 void Bot::createSocketAndConnect() {
@@ -45,7 +69,7 @@ void Bot::createSocketAndConnect() {
 		freeaddrinfo(servinfo);
 		throw LaunchFailed("Socket creation failed");
 	}
-	if (connect(_socket, reinterpret_cast<const sockaddr *>(servinfo), sizeof(*servinfo)) == -1) {
+	if (connect(_socket, servinfo->ai_addr, servinfo->ai_addrlen) == -1) {
 		freeaddrinfo(servinfo);
 		close(_socket);
 		throw LaunchFailed("Failed to connect");
@@ -118,7 +142,8 @@ void Bot::sendResponse(Message *message) {
 	if (!nick.empty()) {
 		std::string cmd = message->getParams()[1];
 		if (cmd == "#make_a_joke") {
-			rpl = "NOTICE " + nick + " :Why did Adele cross the road? To say hello from the other side.\n";
+			if (_counter == _puns.size()) _counter = 0;
+			rpl = "NOTICE " + nick + " :" + _puns[_counter++] + "\n";
 		} else {
 			rpl = "NOTICE " + nick + " :available commands - #make_a_joke\n";
 		}
@@ -136,12 +161,21 @@ void Bot::deleteMessages() {
 	}
 }
 
+void Bot::handleSignals(int signum) {
+	if (signum == SIGSEGV) {
+		std::cerr << "Runtime error" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	gStopped = 1;
+}
+
 void Bot::startBot() {
 	struct pollfd	pollFd = {};
 	int				count;
 
 	_config = new Configuration();
-	_config->parseConfiguration(_path);
+	_config->parseConfiguration(_configPath);
+	loadPuns();
 	createSocketAndConnect();
 	pollFd.fd = _socket;
 	pollFd.events = POLLIN;
@@ -149,7 +183,9 @@ void Bot::startBot() {
 		throw LaunchFailed("Authentication failed");
 	}
 	_active = true;
-	while (_active) {
+	std::signal(SIGINT, handleSignals);
+	std::signal(SIGSEGV, handleSignals);
+	while (_active && !gStopped) {
 		count = poll(&pollFd, 1, -1);
 		if (count == -1) {
 			std::string err;

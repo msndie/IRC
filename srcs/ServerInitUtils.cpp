@@ -76,7 +76,6 @@ void	Server::prepareMotd() {
 	std::string		templ;
 
 	ifs.open("resources/message.motd", std::ifstream::in);
-//	ifs.open("../resources/message.motd", std::ifstream::in);
 	if (!ifs.is_open()) {
 		return;
 	}
@@ -89,7 +88,6 @@ void	Server::prepareMotd() {
 void	Server::configureServer() {
 	_configuration = new Configuration();
 	_configuration->parseConfiguration("resources/configuration.yaml");
-//	_configuration->parseConfiguration("../resources/configuration.yaml");
 	std::map<std::string, std::string>::const_iterator connections;
 	std::map<std::string, std::string>::const_iterator timeOut;
 	int tmp;

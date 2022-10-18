@@ -8,7 +8,6 @@ void sendAll(const char *msg, unsigned long nbrOfBytes, int receiverFd) {
 
 	sent = 0;
 	left = nbrOfBytes;
-	std::cout << msg << std::endl;
 	while (sent < nbrOfBytes) {
 		n = send(receiverFd, msg + sent, left, 0);
 		if (n == -1) {

@@ -55,6 +55,7 @@ private:
 
 	static void	handleSignals(int signum);
 
+	void		acceptUser();
 	void		receiveMessage(int connectionNbr);
 	void		processMessages(User *user);
 	void		sendGreeting(User *user);

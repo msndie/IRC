@@ -3,7 +3,6 @@
 #include "../includes/Server.hpp"
 
 int main(int argc, char** argv) {
-//    int				port;
     std::string	pass;
 	Server*		server;
 	int			status = 0;
@@ -23,6 +22,5 @@ int main(int argc, char** argv) {
 		}
 	}
 	delete server;
-//	getchar();
     return status;
 }

@@ -1,5 +1,3 @@
-
-
 #include "../includes/Server.hpp"
 
 void Server::deleteChannel(Channel *channel) {

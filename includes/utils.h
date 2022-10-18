@@ -4,7 +4,6 @@
 #include <list>
 #include <string>
 
-int							parsePort(const char* str);
 bool						isPortValid(const char* str);
 bool						isStrBlank(const char *str);
 bool						endsWith(const std::string& str, const std::string& suffix);

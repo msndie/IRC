@@ -55,17 +55,40 @@ void Server::dieCmd(User *user, const std::string &cmd,
 	}
 }
 
-void Server::mainLoop() {
+void Server::acceptUser() {
 	struct sockaddr_storage	remoteAddr = {};
 	User*					user;
 	socklen_t				addrLen;
 	int						inFd;
 	int						connectionNbr;
+
+	addrLen = sizeof remoteAddr;
+	inFd = accept(_socketFd, reinterpret_cast<sockaddr*>(&remoteAddr), &addrLen);
+	if (inFd == -1) {
+		std::cerr << "Accept error: " << strerror(errno) << std::endl;
+	} else {
+		connectionNbr = addToPollSet(inFd);
+		if (connectionNbr != -1) {
+			user = new User(inFd, connectionNbr, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
+			_users.insert(std::make_pair(inFd, user));
+			_unregisteredUsers.insert(std::make_pair(inFd, user));
+		} else {
+			std::string rpl = ":" + _name
+							  + " NOTICE * :The maximum number of connections has been reached\n";
+			sendAll(rpl.c_str(), rpl.size(), inFd);
+			close(inFd);
+		}
+	}
+}
+
+void Server::mainLoop() {
 	int						userToCheck;
+	int						timeOut;
+	int						pollCount;
 
 	while (!gStopped) {
-		int timeOut = findMinTimeOut(&userToCheck);
-		int pollCount = poll(_pollFds, _fdPollSize, timeOut);
+		timeOut = findMinTimeOut(&userToCheck);
+		pollCount = poll(_pollFds, _fdPollSize, timeOut);
 
 		if (pollCount == -1) {
 			_err.append("An error on poll: ");
@@ -77,23 +100,7 @@ void Server::mainLoop() {
 
 			if (_pollFds[i].revents & POLLIN) {
 				if (_pollFds[i].fd == _socketFd) {
-					addrLen = sizeof remoteAddr;
-					inFd = accept(_socketFd, reinterpret_cast<sockaddr*>(&remoteAddr), &addrLen);
-					if (inFd == -1) {
-						std::cerr << "Accept error: " << strerror(errno) << std::endl;
-					} else {
-						connectionNbr = addToPollSet(inFd);
-						if (connectionNbr != -1) {
-							user = new User(inFd, connectionNbr, inet_ntoa(reinterpret_cast<sockaddr_in*>(&remoteAddr)->sin_addr));
-							_users.insert(std::make_pair(inFd, user));
-							_unregisteredUsers.insert(std::make_pair(inFd, user));
-						} else {
-							std::string rpl = ":" + _name
-											  + " NOTICE * :The maximum number of connections has been reached\n";
-							sendAll(rpl.c_str(), rpl.size(), inFd);
-							close(inFd);
-						}
-					}
+					acceptUser();
 				} else {
 					receiveMessage(i);
 					disconnectUsers();
