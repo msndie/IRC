@@ -52,7 +52,7 @@ $(OBJECTS_FOLDER):
 	mkdir -p objs/utils
 
 $(OBJECTS_FOLDER)%.o: $(SOURCES_FOLDER)%.cpp
-	c++ -Wall -Wextra -Werror -std=c++98 -c $< -o $@ -I $(INCLUDES_FOLDER)
+	c++ -g -Wall -Wextra -Werror -std=c++98 -c $< -o $@ -I $(INCLUDES_FOLDER)
 
 $(NAME): $(OBJECTS_FOLDER) $(OBJECTS)
 	c++ $(OBJECTS) -o $(NAME)
@@ -63,10 +63,10 @@ $(BOT_OBJS_FOLDER):
 	mkdir -p bot/objs/utils
 
 $(BOT_OBJS_FOLDER)%.o: $(BOT_FOLDER)%.cpp
-	c++ -Wall -Wextra -Werror -std=c++98 -c $< -o $@ -I $(BOT_INCLUDES)
+	c++ -g -Wall -Wextra -Werror -std=c++98 -c $< -o $@ -I $(BOT_INCLUDES)
 
 $(BOT_NAME): $(BOT_OBJS_FOLDER) $(BOT_OBJECTS)
-	c++ $(BOT_OBJECTS) -o $(BOT_NAME)
+	c++ -g $(BOT_OBJECTS) -o $(BOT_NAME)
 
 clean:
 	rm -rf $(OBJECTS_FOLDER)

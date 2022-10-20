@@ -95,8 +95,8 @@ void	Server::disconnectUsers() {
 			deleteFromPollSet(it->second->getConnectionNbr());
 			close(it->first);
 			delete it->second;
-			it = _users.erase(it);
 			_unregisteredUsers.erase(it->first);
+			it = _users.erase(it);
 		} else {
 			++it;
 		}
