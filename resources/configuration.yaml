@@ -4,4 +4,4 @@ server:
     sclam: 123QWEasdZxC
   registration:
     timeout: 20
-  connections: 5
+  connections: 100
