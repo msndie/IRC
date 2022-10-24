@@ -38,7 +38,7 @@ make bonus
 
 # Usage
 
-Run client or just use netcat
+Run weechat, adium or mb irssi(not tested), or just use netcat
 
 ```
 nc localhost <port>
@@ -47,7 +47,7 @@ NICK <nickname>
 USER <username> * * :<Real name>
 ```
 
-And you are in.
+And you're in.
 
 # Available commands
 ```
